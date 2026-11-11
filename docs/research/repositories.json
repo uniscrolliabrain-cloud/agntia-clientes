@@ -1,0 +1,172 @@
+{
+  "observed_on": "2026-11-11",
+  "scope": "Selective metadata/README/license/model/controller reads; no installation, audit or execution",
+  "repositories": [
+    {
+      "repository": "chatwoot/chatwoot",
+      "url": "https://github.com/chatwoot/chatwoot",
+      "default_branch": "develop",
+      "sha": "309c63f359a1206caf9a36a271407f3bb4cc9419",
+      "metadata_license": "NOASSERTION",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "d8b8ae7a2331ba9eb4002ea7d2911a4ae36bf297",
+          "scope": "first 95–125 lines, selective read; no execution"
+        },
+        {
+          "path": "LICENSE",
+          "blob_sha": "d0425a707ab6f0cf06c9aa3c08e8edf5c64adc61",
+          "scope": "first 75 lines; not complete legal review"
+        },
+        {
+          "path": "app/models/conversation.rb",
+          "blob_sha": "e376373a05502fcc36b77f361a8b1c9dcdee59a2",
+          "scope": "first 130 lines; selective read"
+        },
+        {
+          "path": "app/controllers/api/v1/accounts/conversations/messages_controller.rb",
+          "blob_sha": "1e41c32f3b432fea3426d5e43ca19f95ba4d89e9",
+          "scope": "first 130 lines; selective read"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R01"
+    },
+    {
+      "repository": "twentyhq/twenty",
+      "url": "https://github.com/twentyhq/twenty",
+      "default_branch": "main",
+      "sha": "e3c657c74afbed6a74795a1945f6a097dd4faade",
+      "metadata_license": "NOASSERTION",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "4ae7858d549ee44177ca4f23d3a3ce357c2cd541",
+          "scope": "first 95–125 lines, selective read; no execution"
+        },
+        {
+          "path": "LICENSE",
+          "blob_sha": "7f79939e3b656404b49a480db698955b93c7cf37",
+          "scope": "first 75 lines; not complete legal review"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R02"
+    },
+    {
+      "repository": "frappe/crm",
+      "url": "https://github.com/frappe/crm",
+      "default_branch": "develop",
+      "sha": "d68ef63d1eb239fbe60b56bfd9f74a44ad364a94",
+      "metadata_license": "AGPL-3.0",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "f91b06564405389aadfd40fc73dbc12825120d1d",
+          "scope": "first 95–125 lines, selective read; no execution"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R03"
+    },
+    {
+      "repository": "frappe/helpdesk",
+      "url": "https://github.com/frappe/helpdesk",
+      "default_branch": "develop",
+      "sha": "34bfd4ec5271f45a02583517326a0c30fc231cb1",
+      "metadata_license": "AGPL-3.0",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "804d1432bca3d2bd47e6e315ba77ac73391edc83",
+          "scope": "first 95–125 lines, selective read; no execution"
+        },
+        {
+          "path": "helpdesk/helpdesk/doctype/hd_ticket/hd_ticket.json",
+          "blob_sha": "54603b9abadbb2217bd70402a558ce7150b191d8",
+          "scope": "first 130 lines; selective read"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R04"
+    },
+    {
+      "repository": "zammad/zammad",
+      "url": "https://github.com/zammad/zammad",
+      "default_branch": "develop",
+      "sha": "766ad64f895bc58aa024891c6f6c50f264c73350",
+      "metadata_license": "AGPL-3.0",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "21fe878728b204c8863017b75d8fdfa43cf15248",
+          "scope": "first 95–125 lines, selective read; no execution"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R05"
+    },
+    {
+      "repository": "sierra-research/tau2-bench",
+      "url": "https://github.com/sierra-research/tau2-bench",
+      "default_branch": "main",
+      "sha": "c06b07dd7c4d4ec61ba6ff9bcdf0b15dd7ef36d4",
+      "metadata_license": "MIT",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "9c0f4f74fec6fdca94f1f48e12ab72e538b80a7d",
+          "scope": "first 95–125 lines, selective read; no execution"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R06"
+    },
+    {
+      "repository": "SalesforceAIResearch/CRMArena",
+      "url": "https://github.com/SalesforceAIResearch/CRMArena",
+      "default_branch": "main",
+      "sha": "521c1262162bb32f8f55b07193bb3931901e3587",
+      "metadata_license": "NOASSERTION",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "5eadd692a75eda5540c4f1a194be9ad178148c0d",
+          "scope": "first 95–125 lines, selective read; no execution"
+        },
+        {
+          "path": "LICENSE.txt",
+          "blob_sha": "f3fb3cfd8084456270565a4ff1a4abeb5b5523e9",
+          "scope": "first 75 lines; not complete legal review"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R07"
+    },
+    {
+      "repository": "salesforce-misc/crm-agent-bench",
+      "url": "https://github.com/salesforce-misc/crm-agent-bench",
+      "default_branch": "main",
+      "sha": "fc9575cf9bda085aa1f66d920fea944588005964",
+      "metadata_license": "Apache-2.0",
+      "read_files": [
+        {
+          "path": "README.md",
+          "blob_sha": "44671692e8b27e302b26746c1a3e8b7eb0127438",
+          "scope": "first 95–125 lines, selective read; no execution"
+        }
+      ],
+      "runtime_verified": false,
+      "installed": false,
+      "id": "R08"
+    }
+  ]
+}
