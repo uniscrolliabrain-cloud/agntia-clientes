@@ -1,50 +1,96 @@
-# Clientes — 42 campañas estructuradas
+# Implementación del esqueleto · agntia-clientes
 
-**Scaffolds conceptuales, NO instrucciones granulares.** Preservados 42 IDs, 294 tareas y 84 gates originales, todos NOT_STARTED/NOT_EXECUTED. [Originales](../campaigns/README.md) · [PREP](../prep/README.md) · [Factory](../factory/00-README.md) · [Léxico](../factory/02-LEXICO.md) · [ADTC](../factory/03-TRACE-OBSERVABILITY.md) · [Producto](../factory/04-PRODUCTO-CLIENTES.md).
+Este directorio es la evidencia de la ejecución de las 42 campañas `CLI-C01…CLI-C42` sobre
+un esqueleto de código real. **No sustituye** la entrega documental previa: la amplía.
 
-| Campaña | Documento conceptual | Estado |
+## Estado en una línea
+
+`SKELETON_IMPLEMENTED` — código TypeScript ejecutable, 96 tests locales en verde, 9 escenarios
+E2E A–I en verde, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y bridge del padre
+`HOST_BRIDGE_NOT_VERIFIED`.
+
+Reconciliado con los diez documentos de `docs/factory-prep-v1-20261113`: ver
+[FACTORY-RECONCILIATION.md](FACTORY-RECONCILIATION.md). Los estados se traducen al vocabulario
+del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFIED →
+`CODE_VERIFIED`, BLOCKED → `PROPOSED`. Un mock no asciende de nivel.
+
+## Qué está implementado de verdad
+
+| Área | Código | Verificación real |
 |---|---|---|
-| CLI-C01 | [Baseline y perímetro de solo lectura](01-baseline-y-perimetro-de-solo-lectura/README.md) | NOT_STARTED |
-| CLI-C02 | [Modelo de dominio y autoridad](02-modelo-de-dominio-y-autoridad/README.md) | NOT_STARTED |
-| CLI-C03 | [Autenticación Supabase y principal](03-autenticacion-supabase-y-principal/README.md) | NOT_STARTED |
-| CLI-C04 | [Twin y trazabilidad nativa](04-twin-y-trazabilidad-nativa/README.md) | NOT_STARTED |
-| CLI-C05 | [DTOs y contratos runtime](05-dtos-y-contratos-runtime/README.md) | NOT_STARTED |
-| CLI-C06 | [Postgres, RLS y migraciones](06-postgres-rls-y-migraciones/README.md) | NOT_STARTED |
-| CLI-C07 | [Finalidades, preferencias y permisos de comunicación](07-finalidades-preferencias-y-permisos-de-comunicacion/README.md) | NOT_STARTED |
-| CLI-C08 | [Acuerdos, entitlements y encargos](08-acuerdos-entitlements-y-encargos/README.md) | NOT_STARTED |
-| CLI-C09 | [Registro de proveedores, OAuth y secretos](09-registro-de-proveedores-oauth-y-secretos/README.md) | NOT_STARTED |
-| CLI-C10 | [Discovery y capacidades verificadas](10-discovery-y-capacidades-verificadas/README.md) | NOT_STARTED |
-| CLI-C11 | [Directorio y resolución de identidad](11-directorio-y-resolucion-de-identidad/README.md) | NOT_STARTED |
-| CLI-C12 | [Importación, staging y sync](12-importacion-staging-y-sync/README.md) | NOT_STARTED |
-| CLI-C13 | [Chatwoot lectura y bindings](13-chatwoot-lectura-y-bindings/README.md) | NOT_STARTED |
-| CLI-C14 | [Chatwoot writeback seguro](14-chatwoot-writeback-seguro/README.md) | NOT_STARTED |
-| CLI-C15 | [CRM Twenty opcional](15-crm-twenty-opcional/README.md) | NOT_STARTED |
-| CLI-C16 | [Frappe CRM y Helpdesk alternativos](16-frappe-crm-y-helpdesk-alternativos/README.md) | NOT_STARTED |
-| CLI-C17 | [Zammad y portabilidad de helpdesk](17-zammad-y-portabilidad-de-helpdesk/README.md) | NOT_STARTED |
-| CLI-C18 | [Canal web y sesiones de contacto](18-canal-web-y-sesiones-de-contacto/README.md) | NOT_STARTED |
-| CLI-C19 | [Correo transaccional y threading](19-correo-transaccional-y-threading/README.md) | NOT_STARTED |
-| CLI-C20 | [WhatsApp oficial bajo capacidad confirmada](20-whatsapp-oficial-bajo-capacidad-confirmada/README.md) | NOT_STARTED |
-| CLI-C21 | [Inbox, webhooks y evidencia adjunta](21-inbox-webhooks-y-evidencia-adjunta/README.md) | NOT_STARTED |
-| CLI-C22 | [Casos y contrato de resolución](22-casos-y-contrato-de-resolucion/README.md) | NOT_STARTED |
-| CLI-C23 | [SLA, calendario y routing determinista](23-sla-calendario-y-routing-determinista/README.md) | NOT_STARTED |
-| CLI-C24 | [Conocimiento versionado y RAG autorizado](24-conocimiento-versionado-y-rag-autorizado/README.md) | NOT_STARTED |
-| CLI-C25 | [Propuestas IA, idiomas y verificación](25-propuestas-ia-idiomas-y-verificacion/README.md) | NOT_STARTED |
-| CLI-C26 | [Preview y aprobaciones de efecto](26-preview-y-aprobaciones-de-efecto/README.md) | NOT_STARTED |
-| CLI-C27 | [Jobs, outbox y reconciliación](27-jobs-outbox-y-reconciliacion/README.md) | NOT_STARTED |
-| CLI-C28 | [Handoff humano y coordinación](28-handoff-humano-y-coordinacion/README.md) | NOT_STARTED |
-| CLI-C29 | [Onboarding y playbooks de servicio](29-onboarding-y-playbooks-de-servicio/README.md) | NOT_STARTED |
-| CLI-C30 | [Customer success y señales explicables](30-customer-success-y-senales-explicables/README.md) | NOT_STARTED |
-| CLI-C31 | [Renovaciones, reclamaciones y propuestas comerciales](31-renovaciones-reclamaciones-y-propuestas-comerciales/README.md) | NOT_STARTED |
-| CLI-C32 | [Anam como presencia del twin](32-anam-como-presencia-del-twin/README.md) | NOT_STARTED |
-| CLI-C33 | [Portal responsive y revisión humana](33-portal-responsive-y-revision-humana/README.md) | NOT_STARTED |
-| CLI-C34 | [SDK TypeScript, Hono y tools nominadas](34-sdk-typescript-hono-y-tools-nominadas/README.md) | NOT_STARTED |
-| CLI-C35 | [Bridge del padre y eventos interoperables](35-bridge-del-padre-y-eventos-interoperables/README.md) | NOT_STARTED |
-| CLI-C36 | [Observabilidad, métricas y reportes](36-observabilidad-metricas-y-reportes/README.md) | NOT_STARTED |
-| CLI-C37 | [Costes, cuotas y backpressure](37-costes-cuotas-y-backpressure/README.md) | NOT_STARTED |
-| CLI-C38 | [Derechos, retención y salida del servicio](38-derechos-retencion-y-salida-del-servicio/README.md) | NOT_STARTED |
-| CLI-C39 | [Seguridad adversarial y aislamiento](39-seguridad-adversarial-y-aislamiento/README.md) | NOT_STARTED |
-| CLI-C40 | [Evaluaciones y vertical E2E reproducible](40-evaluaciones-y-vertical-e2e-reproducible/README.md) | NOT_STARTED |
-| CLI-C41 | [Operaciones, CI y release controlada](41-operaciones-ci-y-release-controlada/README.md) | NOT_STARTED |
-| CLI-C42 | [Aceptación, informe y entrega a otra IA](42-aceptacion-informe-y-entrega-a-otra-ia/README.md) | NOT_STARTED |
+| Contratos y DTOs | `src/contracts/` | Tests de validación, dinero decimal, campos extra |
+| ADTC v0.1 | `src/contracts/adtc.ts` | Envelope completo, traceparent W3C, refs sin PII |
+| Puertos y adaptadores | `src/ports/` | 11 puertos, contrato de 19 campos, nada conectado sin evidencia |
+| Certeza | `src/contracts/certainty.ts` | Seis niveles; PASS local ≠ evidencia externa |
+| JWT Supabase + principal | `src/auth/` | Matriz negativa: firma, exp, iss, aud, alg, `user_metadata`, membresía |
+| Twins y delegación | `src/domain/twins.ts`, `src/auth/delegation.ts` | Mandato firmado, caducidad, revocación, cross-tenant |
+| FSM de casos + resolución | `src/domain/cases.ts` | Transiciones, CAS, evidencia obligatoria, cierre por silencio |
+| SLA y routing | `src/domain/sla.ts`, `src/domain/routing.ts` | Calendario IANA, festivos, pausa, cobertura ausente |
+| Conocimiento y RAG | `src/domain/knowledge.ts` | ACL previa/posterior, versión retirada, aislamiento |
+| Propuestas | `src/domain/proposals.ts` | Gateway determinista, citas, claims prohibidos |
+| Aprobaciones | `src/domain/approvals.ts` | Hash de payload/destinatario/canal/adjuntos, separación de funciones |
+| Outbound + worker | `src/domain/outbound.ts`, `src/jobs/` | Replay, `delivered` con evidencia, `outcome_unknown`, reconciliación |
+| Inbox y adjuntos | `src/inbox/` | Firma HMAC, replay, skew, MIME real, CSV, cuarentena |
+| Adaptadores | `src/adapters/`, `src/channels/` | Contratos contra transporte fake; ninguna API real llamada |
+| Storage | `src/storage/` | Repositorio tenant-scoped + migraciones SQL con RLS (no ejecutadas) |
+| API + portal | `src/app/` | Rutas nominadas, 401/403/404/409, HTML accesible |
+| SDK + proxy + tools | `src/sdk/`, `src/tools/` | Allowlist exacta, tools sin approve/send/refund |
+| Bridge del padre | `src/bridge/` | Proyección conservadora a `SystemEvent` v1, inbox dedup |
+| Presencia Anam | `src/presence/anam.ts` | Sesión acotada, sin API key en cliente, fallback texto |
+| Observabilidad y reportes | `src/observability/`, `src/reporting/` | Redacción de secretos, snapshots reproducibles, CSAT nulo, fallo de métricas no bloqueante |
+| Presupuesto y cuotas | `src/budget/` | Reservas concurrentes, techo, rate limit separado |
+| Privacidad | `src/privacy/` | Bases por finalidad, consentimiento append-only, export revisado |
+| Evals | `src/eval/` | Fixtures A/B/P y E2E A–I |
 
-Después: meta-auditoría conceptual libre de Astra → reconciliación founder/arquitecto → patchsets, handoffs por campaña y pruebas. Handoffs generales en docs/factory/. No simular implementación.
+## Qué NO está implementado (y se declara)
+
+- **Postgres real / RLS ejecutada**: hay migraciones y repositorio en memoria con las mismas
+  garantías observables; el gate de base de datos sigue `NOT_VERIFIED`.
+- **Proveedores reales** (Chatwoot, Twenty, Frappe, Zammad, Resend, Meta WhatsApp): adaptadores
+  con contrato y transporte fake. Ninguna credencial, ninguna llamada, ningún receipt real.
+- **Anam real**: emisión local de token efímero de desarrollo; sin SDK ni sesión.
+- **Supabase real**: JWT verificado con claves de fixture; no hay proyecto provisionado.
+- **Bridge del padre**: contratos y host fake; **cero** cambios en `/agente`.
+- **UI de producto**: marco HTML accesible de portal, sin cliente React ni estado real.
+- **Backups, restore, DLQ persistente, CI ejecutada en GitHub**: diseñados, no ejecutados.
+
+## Cómo se verifica
+
+```bash
+npm install        # dependencias del lockfile
+npm run typecheck  # tsc --noEmit
+npm test           # 96 tests (node:test)
+npm run eval       # E2E A–I → artifacts/e2e-report.json
+npm start          # API en :3000 (falla cerrada sin Supabase)
+```
+
+Resultados de esta ejecución: typecheck OK · 96/96 tests OK · 9/9 escenarios OK.
+El detalle por fase está en [`../campaigns/reports/`](../campaigns/reports/README.md).
+
+## Mapa de artefactos prometidos por las campañas
+
+Las campañas proponían rutas como `docs/baseline.md` o `docs/threat-model.md`. Para no
+fragmentar la entrega, la evidencia se consolidó en este directorio:
+
+| Prometido | Entregado |
+|---|---|
+| `docs/baseline.md`, `docs/host-diff.md` | [`BASELINE.md`](BASELINE.md) |
+| `docs/domain-model.md`, `docs/authority-map.md`, `docs/native-mapping.md` | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
+| `docs/auth-contract.md` | [`SECURITY.md`](SECURITY.md) §Identidad |
+| `docs/capability-matrix.md`, `docs/adapters/*` | [`CAPABILITY-MATRIX.md`](CAPABILITY-MATRIX.md) |
+| `docs/retention-matrix.md`, `docs/sensitive-actions.md` | [`PRIVACY-RETENTION.md`](PRIVACY-RETENTION.md) |
+| `docs/threat-model.md`, `docs/security-evidence.md` | [`SECURITY.md`](SECURITY.md) |
+| `docs/metrics-catalog.md`, `docs/e2e-evidence.md` | [`OPERATIONS.md`](OPERATIONS.md) |
+| `migrations/` | `src/storage/migrations/` |
+| `.github/workflows/ci.yml`, `infra/` | `.github/workflows/ci.yml`, `infra/` |
+
+## Índice del programa original (rama main)
+
+La entrega documental que ya estaba en `main` se conserva íntegra en
+[PROGRAM.md](PROGRAM.md): los 42 scaffolds conceptuales con sus 294 tareas y 84 gates, todos
+`NOT_STARTED` en su momento. Este README describe el **estado tras implementarlos**; el
+documento del programa sigue siendo la referencia de qué pedía cada campaña.
+
+- Programa de ejecución completo: [`docs/execution-program/`](../execution-program/00-ESTADO-REAL-DEL-REPO.md)
+- Factory y léxico: [`docs/factory/`](../factory/00-README.md)
+- Evidencia por fase: [`docs/campaigns/reports/`](../campaigns/reports/README.md)

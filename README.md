@@ -2,7 +2,7 @@
 
 Diseño de una empresa SaaS especialista en relación con clientes, atención y customer success, compatible con `uniscrolliabrain-cloud/agente`. Entrega documental 2/9 · 11 de noviembre de 2026.
 
-**Estado: DOCUMENTATION_ONLY. No hay aplicación, SDK, tests de producto, contenedores ni proveedores conectados. Las 42 campañas están NOT_STARTED.** La ambición es construir un servicio comparable por capacidades relevantes a referentes mundiales; este diseño no acredita paridad, escala ni certificaciones.
+**Estado: SKELETON_IMPLEMENTED.** El diseño documental sigue siendo la fuente de verdad y ahora tiene un esqueleto de código ejecutable: 42 campañas implementadas con 87 tests locales en verde y 9 escenarios E2E A–I en verde. **No hay proveedores conectados, ni Postgres/RLS ejecutada, ni bridge con `/agente`, ni despliegue.** Ver [informe de implementación](docs/release/IMPLEMENTATION-REPORT.md) y [anexos por fase](docs/campaigns/reports/README.md).
 
 El cliente podrá mantener una ficha de relación con fuentes, atender consultas en una bandeja multicanal, gestionar tickets y SLA, buscar conocimiento autorizado, revisar propuestas de respuesta, coordinar onboarding, ver riesgos de relación y recibir reportes. Un agente especialista, presente por visio con Anam, trabajará junto a humanos y agentes generalistas. Los agentes canónicos viven en `/agente`; aquí habrá twins vinculados y ejecución especializada bajo mandato. No se crea una segunda plantilla canónica.
 

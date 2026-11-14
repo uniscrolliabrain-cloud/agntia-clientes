@@ -1,6 +1,6 @@
 # Campaña de42 fases: agntia-clientes
 
-Diseño ejecutable por otra IA, pendiente de implementación. **42 campañas,294 tareas,84 escenarios de gate; NOT_STARTED/NOT_EXECUTED.** Avanzar secuencialmente tras verificar cada gate. Checkpoints después de cada cinco y de las dos finales. No se promete que42 fases se terminen en siete días.
+Diseño ejecutable por otra IA. **42 campañas, 294 tareas, 84 escenarios de gate.** Ejecutadas sobre un esqueleto de código el 2026-11-14: estado global **SKELETON_IMPLEMENTED** (30 gates PASS locales, 8 NOT_VERIFIED, 4 BLOCKED). Cada fase enlaza su [anexo de implementación](reports/README.md) al final del documento. Un PASS local no equivale a un gate de proveedor real: ver la [matriz de capacidades](../implementation/CAPABILITY-MATRIX.md).
 
 El [manifest](campaign.json) contiene IDs/dependencias, tareas/aceptación, fuentes, artefactos propuestos y riesgos. Cada documento aporta trabajo específico; las reglas transversales no reemplazan sus pruebas. Supabase, twin canónico y trazabilidad son obligatorios en todas las fases. No modificar agente.
 
