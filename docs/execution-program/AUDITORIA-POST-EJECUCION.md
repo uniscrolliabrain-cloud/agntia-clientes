@@ -1,0 +1,3 @@
+# Auditoría independiente — después de Freebuff
+
+**No es gate entre campañas.** Codex recibe SHA final, árbol, manifests, 42 CAMPAIGN, diff y evidencia. Revisa arquitectura real, compilación, tests, aislamiento multiempresa, IAM, RLS, efectos externos e idempotencia, aprobación/mandato, reconciliación, licencias, rendimiento, presupuesto, UX, documentación y rollback. Clasifica hallazgos CRITICAL/HIGH/MEDIUM/LOW con ruta/línea, reproducción y fix; no reescribir historia de Freebuff. Freebuff corrige lote de hallazgos y Codex revalida SHA de corrección. Arquitecto reconcilia; founder aprueba merge/release.
