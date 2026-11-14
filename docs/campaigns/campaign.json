@@ -137,7 +137,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C01.md"
     },
     {
       "title": "Modelo de dominio y autoridad",
@@ -261,7 +263,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C02.md"
     },
     {
       "title": "Autenticación Supabase y principal",
@@ -385,7 +389,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C03.md"
     },
     {
       "title": "Twin y trazabilidad nativa",
@@ -507,7 +513,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C04.md"
     },
     {
       "title": "DTOs y contratos runtime",
@@ -632,7 +640,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C05.md"
     },
     {
       "title": "Postgres, RLS y migraciones",
@@ -756,7 +766,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C06.md"
     },
     {
       "title": "Finalidades, preferencias y permisos de comunicación",
@@ -880,7 +892,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C07.md"
     },
     {
       "title": "Acuerdos, entitlements y encargos",
@@ -1004,7 +1018,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C08.md"
     },
     {
       "title": "Registro de proveedores, OAuth y secretos",
@@ -1129,7 +1145,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C09.md"
     },
     {
       "title": "Discovery y capacidades verificadas",
@@ -1255,7 +1273,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C10.md"
     },
     {
       "title": "Directorio y resolución de identidad",
@@ -1379,7 +1399,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "BLOCKED",
+      "annex": "docs/campaigns/reports/C11.md"
     },
     {
       "title": "Importación, staging y sync",
@@ -1504,7 +1526,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "BLOCKED",
+      "annex": "docs/campaigns/reports/C12.md"
     },
     {
       "title": "Chatwoot lectura y bindings",
@@ -1627,7 +1651,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C13.md"
     },
     {
       "title": "Chatwoot writeback seguro",
@@ -1750,7 +1776,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C14.md"
     },
     {
       "title": "CRM Twenty opcional",
@@ -1873,7 +1901,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C15.md"
     },
     {
       "title": "Frappe CRM y Helpdesk alternativos",
@@ -1997,7 +2027,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C16.md"
     },
     {
       "title": "Zammad y portabilidad de helpdesk",
@@ -2120,7 +2152,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C17.md"
     },
     {
       "title": "Canal web y sesiones de contacto",
@@ -2244,7 +2278,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C18.md"
     },
     {
       "title": "Correo transaccional y threading",
@@ -2367,7 +2403,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C19.md"
     },
     {
       "title": "WhatsApp oficial bajo capacidad confirmada",
@@ -2490,7 +2528,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "BLOCKED",
+      "annex": "docs/campaigns/reports/C20.md"
     },
     {
       "title": "Inbox, webhooks y evidencia adjunta",
@@ -2614,7 +2654,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C21.md"
     },
     {
       "title": "Casos y contrato de resolución",
@@ -2739,7 +2781,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C22.md"
     },
     {
       "title": "SLA, calendario y routing determinista",
@@ -2863,7 +2907,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C23.md"
     },
     {
       "title": "Conocimiento versionado y RAG autorizado",
@@ -2987,7 +3033,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C24.md"
     },
     {
       "title": "Propuestas IA, idiomas y verificación",
@@ -3113,7 +3161,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C25.md"
     },
     {
       "title": "Preview y aprobaciones de efecto",
@@ -3237,7 +3287,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C26.md"
     },
     {
       "title": "Jobs, outbox y reconciliación",
@@ -3361,7 +3413,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C27.md"
     },
     {
       "title": "Handoff humano y coordinación",
@@ -3485,7 +3539,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C28.md"
     },
     {
       "title": "Onboarding y playbooks de servicio",
@@ -3609,7 +3665,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C29.md"
     },
     {
       "title": "Customer success y señales explicables",
@@ -3733,7 +3791,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C30.md"
     },
     {
       "title": "Renovaciones, reclamaciones y propuestas comerciales",
@@ -3858,7 +3918,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "BLOCKED",
+      "annex": "docs/campaigns/reports/C31.md"
     },
     {
       "title": "Anam como presencia del twin",
@@ -3982,7 +4044,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C32.md"
     },
     {
       "title": "Portal responsive y revisión humana",
@@ -4106,7 +4170,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C33.md"
     },
     {
       "title": "SDK TypeScript, Hono y tools nominadas",
@@ -4230,7 +4296,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C34.md"
     },
     {
       "title": "Bridge del padre y eventos interoperables",
@@ -4352,7 +4420,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C35.md"
     },
     {
       "title": "Observabilidad, métricas y reportes",
@@ -4477,7 +4547,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C36.md"
     },
     {
       "title": "Costes, cuotas y backpressure",
@@ -4601,7 +4673,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C37.md"
     },
     {
       "title": "Derechos, retención y salida del servicio",
@@ -4726,7 +4800,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C38.md"
     },
     {
       "title": "Seguridad adversarial y aislamiento",
@@ -4851,7 +4927,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C39.md"
     },
     {
       "title": "Evaluaciones y vertical E2E reproducible",
@@ -4977,7 +5055,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C40.md"
     },
     {
       "title": "Operaciones, CI y release controlada",
@@ -5102,7 +5182,9 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "NOT_VERIFIED",
+      "annex": "docs/campaigns/reports/C41.md"
     },
     {
       "title": "Aceptación, informe y entrega a otra IA",
@@ -5225,7 +5307,12 @@
         "Fixtures inicial/final y estado protegido",
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
-      ]
+      ],
+      "skeleton_status": "VERIFIED_LOCAL",
+      "annex": "docs/campaigns/reports/C42.md"
     }
-  ]
+  ],
+  "skeleton_status": "SKELETON_IMPLEMENTED",
+  "skeleton_observed_on": "2026-11-14",
+  "skeleton_evidence": "docs/implementation/README.md"
 }

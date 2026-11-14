@@ -1,0 +1,52 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: E2E A-I
+        run: npm run eval
+      - name: Upload sanitized evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: artifacts/e2e-report.json
+          if-no-files-found: error
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Documented counts stay consistent
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const d = JSON.parse(fs.readFileSync("docs/campaigns/campaign.json", "utf8"));
+            const tasks = d.campaigns.reduce((n, c) => n + c.tasks.length, 0);
+            const gates = d.campaigns.reduce((n, c) => n + c.gate_scenarios.length, 0);
+            if (d.campaign_count !== d.campaigns.length || d.task_count !== tasks || d.gate_scenario_count !== gates) {
+              console.error({ declared: [d.campaign_count, d.task_count, d.gate_scenario_count], actual: [d.campaigns.length, tasks, gates] });
+              process.exit(1);
+            }
+            console.log("manifest consistente:", d.campaigns.length, "campañas,", tasks, "tareas,", gates, "gates");
+          '
+      - name: Every campaign has an annex
+        run: |
+          for i in $(seq -w 1 42); do
+            test -f "docs/campaigns/reports/C${i}.md" || { echo "falta anexo C${i}"; exit 1; }
+          done

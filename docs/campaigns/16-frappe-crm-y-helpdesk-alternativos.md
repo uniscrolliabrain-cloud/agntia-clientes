@@ -1,6 +1,6 @@
 # CLI-C16 · Frappe CRM y Helpdesk alternativos
 
-Estado: **NOT_STARTED**. Pruebas: **NOT_EXECUTED**. Secuencia16/42. Dependencia: CLI-C15.
+Estado: **SKELETON_IMPLEMENTED**. Pruebas locales: **EXECUTED** (ver anexo). Secuencia16/42. Dependencia: CLI-C15.
 
 ## Objetivo e invariante
 
@@ -94,3 +94,5 @@ Registrar operaciones de lectura/escritura ensayadas, actor/tenant/mandato, evid
 Detener ante fuga, bypass, secreto, duplicación, pérdida de audit o ambigüedad que pueda provocar un efecto indebido. Resolver antes de avanzar. Reportar al founder después de las fases5/10/15/20/25/30/35/40/42; el informe enlaza resultados, riesgos, bloqueos y siguiente paso.
 
 Fuentes de esta fase: R03, R04, A03. Ver [registro](../research/sources.json), [repos](../research/repositories.json), [contratos](../contracts/01-contratos.md) y [mapa padre](../research/parent-source-map.json).
+
+> Anexo de implementación: [C16](reports/C16.md) · estado del gate: **NOT_VERIFIED** · CLI-C16.

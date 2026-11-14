@@ -1,0 +1,27 @@
+{
+  "name": "agntia-clientes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SaaS de relación, atención y customer success: esqueleto implementado de las 42 campañas CLI-C01..CLI-C42.",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "dev": "node --watch src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
+    "eval": "node src/eval/run-e2e.ts",
+    "reports": "node scripts/write-campaign-annexes.ts",
+    "verify": "npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "hono": "^4.9.10",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}

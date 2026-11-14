@@ -1,0 +1,22 @@
+# Infra de laboratorio (NO EJECUTADA en este entorno: sin Docker).
+# Uso previsto: pruebas de migraciones y RLS con Postgres real.
+services:
+  postgres:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: agntia
+      POSTGRES_PASSWORD: local_only_change_me
+      POSTGRES_DB: agntia_clientes
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ../src/storage/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agntia"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Nota: no se incluye Supabase, Chatwoot, Twenty, Frappe ni Zammad.
+  # El diseño prohíbe instalar varios backends "para aparentar cobertura".
