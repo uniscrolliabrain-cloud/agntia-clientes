@@ -83,3 +83,14 @@ fragmentar la entrega, la evidencia se consolidó en este directorio:
 | `docs/metrics-catalog.md`, `docs/e2e-evidence.md` | [`OPERATIONS.md`](OPERATIONS.md) |
 | `migrations/` | `src/storage/migrations/` |
 | `.github/workflows/ci.yml`, `infra/` | `.github/workflows/ci.yml`, `infra/` |
+
+## Índice del programa original (rama main)
+
+La entrega documental que ya estaba en `main` se conserva íntegra en
+[PROGRAM.md](PROGRAM.md): los 42 scaffolds conceptuales con sus 294 tareas y 84 gates, todos
+`NOT_STARTED` en su momento. Este README describe el **estado tras implementarlos**; el
+documento del programa sigue siendo la referencia de qué pedía cada campaña.
+
+- Programa de ejecución completo: [`docs/execution-program/`](../execution-program/00-ESTADO-REAL-DEL-REPO.md)
+- Factory y léxico: [`docs/factory/`](../factory/00-README.md)
+- Evidencia por fase: [`docs/campaigns/reports/`](../campaigns/reports/README.md)
