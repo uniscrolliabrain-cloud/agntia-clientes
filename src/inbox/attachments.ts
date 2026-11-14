@@ -1,4 +1,4 @@
-import { invalid } from "../lib/errors.ts";
+import { forbidden, invalid, notFound } from "../lib/errors.ts";
 import { sha256Hex } from "../lib/ids.ts";
 
 /**
@@ -97,6 +97,22 @@ export function neutralizeCsv(text: string, isCsv: boolean): string {
         .join(","),
     )
     .join("\n");
+}
+
+/**
+ * ACL de adjuntos (docs/factory/03 · negativos): un empleado sin ACL del caso
+ * no ve el adjunto, y un adjunto de otro tenant responde 404, no 403.
+ */
+export function requireAttachmentAccess(input: {
+  attachmentTenantId: string;
+  tenantId: string;
+  caseId: string;
+  principalCaseScopes: readonly string[];
+  quarantined?: boolean;
+}): void {
+  if (input.attachmentTenantId !== input.tenantId) throw notFound();
+  if (!input.principalCaseScopes.includes(input.caseId)) throw forbidden("Sin ACL del caso");
+  if (input.quarantined) throw forbidden("Adjunto en cuarentena");
 }
 
 /**

@@ -86,6 +86,8 @@ export const PHASES_1: PhaseAnnex[] = [
       "src/contracts/common.ts (dinero decimal, fechas con offset, IDs opacos)",
       "src/contracts/envelope.ts (Envelope v1, OperationResult discriminado)",
       "src/lib/ids.ts (JSON canónico, sha256, comparación en tiempo constante)",
+      "src/contracts/adtc.ts (envelope ADTC v0.1, traceparent W3C, refs sin PII)",
+      "src/contracts/certainty.ts (DOC_ONLY/PROPOSED/CODE_VERIFIED/TEST_VERIFIED/STALE/UNKNOWN)",
     ],
     verified: ["test/contracts.test.ts: 8 casos", "Campos extra rechazados, estados inventados rechazados"],
     deviations: [

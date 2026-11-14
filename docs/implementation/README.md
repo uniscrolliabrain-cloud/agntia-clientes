@@ -5,15 +5,23 @@ un esqueleto de código real. **No sustituye** la entrega documental previa: la 
 
 ## Estado en una línea
 
-`SKELETON_IMPLEMENTED` — código TypeScript ejecutable, 87 tests locales en verde, 9 escenarios
+`SKELETON_IMPLEMENTED` — código TypeScript ejecutable, 96 tests locales en verde, 9 escenarios
 E2E A–I en verde, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y bridge del padre
 `HOST_BRIDGE_NOT_VERIFIED`.
+
+Reconciliado con los diez documentos de `docs/factory-prep-v1-20261113`: ver
+[FACTORY-RECONCILIATION.md](FACTORY-RECONCILIATION.md). Los estados se traducen al vocabulario
+del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFIED →
+`CODE_VERIFIED`, BLOCKED → `PROPOSED`. Un mock no asciende de nivel.
 
 ## Qué está implementado de verdad
 
 | Área | Código | Verificación real |
 |---|---|---|
 | Contratos y DTOs | `src/contracts/` | Tests de validación, dinero decimal, campos extra |
+| ADTC v0.1 | `src/contracts/adtc.ts` | Envelope completo, traceparent W3C, refs sin PII |
+| Puertos y adaptadores | `src/ports/` | 11 puertos, contrato de 19 campos, nada conectado sin evidencia |
+| Certeza | `src/contracts/certainty.ts` | Seis niveles; PASS local ≠ evidencia externa |
 | JWT Supabase + principal | `src/auth/` | Matriz negativa: firma, exp, iss, aud, alg, `user_metadata`, membresía |
 | Twins y delegación | `src/domain/twins.ts`, `src/auth/delegation.ts` | Mandato firmado, caducidad, revocación, cross-tenant |
 | FSM de casos + resolución | `src/domain/cases.ts` | Transiciones, CAS, evidencia obligatoria, cierre por silencio |
@@ -29,7 +37,7 @@ E2E A–I en verde, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y bri
 | SDK + proxy + tools | `src/sdk/`, `src/tools/` | Allowlist exacta, tools sin approve/send/refund |
 | Bridge del padre | `src/bridge/` | Proyección conservadora a `SystemEvent` v1, inbox dedup |
 | Presencia Anam | `src/presence/anam.ts` | Sesión acotada, sin API key en cliente, fallback texto |
-| Observabilidad y reportes | `src/observability/`, `src/reporting/` | Redacción de secretos, snapshots reproducibles, CSAT nulo |
+| Observabilidad y reportes | `src/observability/`, `src/reporting/` | Redacción de secretos, snapshots reproducibles, CSAT nulo, fallo de métricas no bloqueante |
 | Presupuesto y cuotas | `src/budget/` | Reservas concurrentes, techo, rate limit separado |
 | Privacidad | `src/privacy/` | Bases por finalidad, consentimiento append-only, export revisado |
 | Evals | `src/eval/` | Fixtures A/B/P y E2E A–I |
@@ -51,12 +59,12 @@ E2E A–I en verde, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y bri
 ```bash
 npm install        # dependencias del lockfile
 npm run typecheck  # tsc --noEmit
-npm test           # 87 tests (node:test)
+npm test           # 96 tests (node:test)
 npm run eval       # E2E A–I → artifacts/e2e-report.json
 npm start          # API en :3000 (falla cerrada sin Supabase)
 ```
 
-Resultados de esta ejecución: typecheck OK · 87/87 tests OK · 9/9 escenarios OK.
+Resultados de esta ejecución: typecheck OK · 96/96 tests OK · 9/9 escenarios OK.
 El detalle por fase está en [`../campaigns/reports/`](../campaigns/reports/README.md).
 
 ## Mapa de artefactos prometidos por las campañas

@@ -11,6 +11,7 @@ import { buildReport, percentile } from "../reporting/reports.ts";
 import { renderCasePage, renderPortalHome } from "./ui.ts";
 import { seedContext } from "./context.ts";
 import { mintDevToken, assertDevTokensAllowed } from "../auth/dev-token.ts";
+import { NonBlockingMetrics } from "../observability/nonblocking.ts";
 
 /**
  * API nominada /v1/clientes (CLI-C34). Sin proxy genérico: rutas exactas,
@@ -203,7 +204,8 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       outcome: "applied",
       payloadRef: `case:${row.id}:${result.from}->${result.to}`,
     });
-    ctx.metrics.increment("cases.transition", { tenant: actor.tenantId });
+    // Observabilidad accesoria: un sumidero caído no revierte la transición.
+    NonBlockingMetrics.guard(() => ctx.metrics.increment("cases.transition", { tenant: actor.tenantId }), undefined);
     return c.json({ case: result.case, transition: { from: result.from, to: result.to } });
   });
 
@@ -488,10 +490,14 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
   app.onError((error, c) => {
     const serviceError = toServiceError(error);
     if (serviceError.status >= 500) {
-      ctx.logger.log("error", serviceError.message, {
-        correlationId: c.get("correlationId"),
-        tenantRef: c.get("tenantId") ?? null,
-      });
+      NonBlockingMetrics.guard(
+        () =>
+          ctx.logger.log("error", serviceError.message, {
+            correlationId: c.get("correlationId"),
+            tenantRef: c.get("tenantId") ?? null,
+          }),
+        undefined,
+      );
     }
     return c.json(serviceError.toEnvelope(c.get("correlationId")), serviceError.status as 500);
   });

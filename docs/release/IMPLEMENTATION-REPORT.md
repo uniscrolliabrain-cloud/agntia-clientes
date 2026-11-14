@@ -16,11 +16,29 @@ privacidad, evals y CI. Cada fase tiene su anexo en
 | Comprobación | Comando | Resultado |
 |---|---|---|
 | Tipos | `npm run typecheck` | sin errores |
-| Tests | `npm test` | **87/87 pass, 0 fail** |
+| Tests | `npm test` | **96/96 pass, 0 fail** |
 | E2E A–I | `npm run eval` | **9/9 PASS** → `artifacts/e2e-report.json` |
 | Manifiesto | `npm run reports` | 42 anexos, conteos 42/294/84 intactos |
 
-Reparto de gates por fase: **30 PASS**, **8 NOT_VERIFIED**, **4 BLOCKED**.
+Reparto de gates por fase: **30 PASS**, **8 NOT_VERIFIED**, **4 BLOCKED** (equivalen a
+`TEST_VERIFIED`, `CODE_VERIFIED` y `PROPOSED` en el vocabulario del factory).
+
+## Reconciliación con `docs/factory-prep-v1-20261113`
+
+Se revisaron los diez documentos de preparación y se corrigió lo que faltaba (detalle en
+[FACTORY-RECONCILIATION.md](../implementation/FACTORY-RECONCILIATION.md)):
+
+- **ADTC v0.1** implementado como contrato ejecutable (`src/contracts/adtc.ts`): envelope
+  completo, `traceparent` W3C, refs restringidas y rechazo activo de PII/URLs/texto libre en
+  el bus. `attemptId` añadido como nullable porque el texto lo exige y el ejemplo lo omite.
+- **11 puertos PROPOSED** y **contrato de adaptador de 19 campos** (`src/ports/index.ts`):
+  el registro rechaza contratos incompletos y nada se marca conectado sin evidencia.
+- **Vocabulario de certeza** del factory (`src/contracts/certainty.ts`), que impide tratar un
+  `CODE_VERIFIED` como verificado.
+- **ACL de adjuntos** por caso y **observabilidad no bloqueante**: dos negativos del documento
+  que no estaban cubiertos.
+- **Lockfile reparado**: el `package-lock.json` commiteado no cuadraba con `package.json`
+  (`npm ci` fallaba). Regenerado desde los rangos declarados; `npm ci` ahora funciona.
 
 ## Límites que se declaran sin rodeos
 
