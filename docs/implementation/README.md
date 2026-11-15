@@ -5,7 +5,7 @@ un esqueleto de código real. **No sustituye** la entrega documental previa: la 
 
 ## Estado en una línea
 
-`SKELETON_IMPLEMENTED` — código TypeScript ejecutable, 96 tests locales en verde, 9 escenarios
+`SKELETON_IMPLEMENTED` — código TypeScript ejecutable, 106 tests locales en verde, 9 escenarios
 E2E A–I en verde, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y bridge del padre
 `HOST_BRIDGE_NOT_VERIFIED`.
 
@@ -59,12 +59,12 @@ del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFI
 ```bash
 npm install        # dependencias del lockfile
 npm run typecheck  # tsc --noEmit
-npm test           # 96 tests (node:test)
+npm test           # 106 tests (node:test)
 npm run eval       # E2E A–I → artifacts/e2e-report.json
 npm start          # API en :3000 (falla cerrada sin Supabase)
 ```
 
-Resultados de esta ejecución: typecheck OK · 96/96 tests OK · 9/9 escenarios OK.
+Resultados de esta ejecución: typecheck OK · 106/106 tests OK · 9/9 escenarios OK.
 El detalle por fase está en [`../campaigns/reports/`](../campaigns/reports/README.md).
 
 ## Mapa de artefactos prometidos por las campañas
