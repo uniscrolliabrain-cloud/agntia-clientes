@@ -17,8 +17,8 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 | C08 | [Acuerdos, entitlements y encargos](C08.md) | PASS |
 | C09 | [Registro de proveedores, OAuth y secretos](C09.md) | PASS |
 | C10 | [Discovery y capacidades verificadas](C10.md) | PASS |
-| C11 | [Directorio y resolución de identidad](C11.md) | BLOCKED |
-| C12 | [Importación, staging y sync](C12.md) | BLOCKED |
+| C11 | [Directorio y resolución de identidad](C11.md) | PASS |
+| C12 | [Importación, staging y sync](C12.md) | PASS |
 | C13 | [Chatwoot lectura y bindings](C13.md) | PASS |
 | C14 | [Chatwoot writeback seguro](C14.md) | PASS |
 | C15 | [CRM Twenty opcional](C15.md) | NOT_VERIFIED |
@@ -37,7 +37,7 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 | C28 | [Handoff humano y coordinación](C28.md) | PASS |
 | C29 | [Onboarding y playbooks de servicio](C29.md) | PASS |
 | C30 | [Customer success y señales explicables](C30.md) | PASS |
-| C31 | [Renovaciones, reclamaciones y propuestas comerciales](C31.md) | BLOCKED |
+| C31 | [Renovaciones, reclamaciones y propuestas comerciales](C31.md) | PASS |
 | C32 | [Anam como presencia del twin](C32.md) | NOT_VERIFIED |
 | C33 | [Portal responsive y revisión humana](C33.md) | NOT_VERIFIED |
 | C34 | [SDK TypeScript, Hono y tools nominadas](C34.md) | PASS |
@@ -52,9 +52,9 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 
 ## Lectura rápida
 
-- **PASS** (ejecutado y verificado en local): 30 fases.
+- **PASS** (ejecutado y verificado en local): 33 fases.
 - **NOT_VERIFIED** (código y contrato listos, proveedor o runtime real ausente): 8 fases.
-- **BLOCKED** (deliberadamente fuera de alcance en el esqueleto): 4 fases.
+- **BLOCKED** (deliberadamente fuera de alcance en el esqueleto): 1 fases.
 
 Ningún PASS de este documento equivale a un gate de proveedor real. Ver
 [CAPABILITY-MATRIX](../../implementation/CAPABILITY-MATRIX.md).

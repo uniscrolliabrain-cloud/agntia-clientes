@@ -123,6 +123,6 @@ identidad multicanal, calendarios, canal voz/WhatsApp, autoridad de reembolsos, 
 ```bash
 npm ci             # lockfile regenerado y verificado (antes no cuadraba con package.json)
 npm run typecheck  # sin errores
-npm test           # 96 tests (87 previos + 9 de esta reconciliación)
+npm test           # 106 tests (87 base + 9 de reconciliación + 10 de C11/C12/C31)
 npm run eval       # 9/9 escenarios A–I
 ```

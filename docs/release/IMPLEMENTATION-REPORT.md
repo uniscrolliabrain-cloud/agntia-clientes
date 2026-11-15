@@ -16,12 +16,14 @@ privacidad, evals y CI. Cada fase tiene su anexo en
 | Comprobación | Comando | Resultado |
 |---|---|---|
 | Tipos | `npm run typecheck` | sin errores |
-| Tests | `npm test` | **96/96 pass, 0 fail** |
+| Tests | `npm test` | **106/106 pass, 0 fail** |
 | E2E A–I | `npm run eval` | **9/9 PASS** → `artifacts/e2e-report.json` |
 | Manifiesto | `npm run reports` | 42 anexos, conteos 42/294/84 intactos |
 
-Reparto de gates por fase: **30 PASS**, **8 NOT_VERIFIED**, **4 BLOCKED** (equivalen a
-`TEST_VERIFIED`, `CODE_VERIFIED` y `PROPOSED` en el vocabulario del factory).
+Reparto de gates por fase: **33 PASS**, **8 NOT_VERIFIED**, **1 BLOCKED** (equivalen a
+`TEST_VERIFIED`, `CODE_VERIFIED` y `PROPOSED` en el vocabulario del factory). C11, C12 y C31
+dejaron de estar bloqueadas al implementarse identidad revisable, importación idempotente y
+propuestas de compensación sin ejecución.
 
 ## Reconciliación con `docs/factory-prep-v1-20261113`
 

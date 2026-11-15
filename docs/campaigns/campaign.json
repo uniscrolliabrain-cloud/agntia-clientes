@@ -1400,7 +1400,7 @@
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
       ],
-      "skeleton_status": "BLOCKED",
+      "skeleton_status": "VERIFIED_LOCAL",
       "annex": "docs/campaigns/reports/C11.md"
     },
     {
@@ -1527,7 +1527,7 @@
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
       ],
-      "skeleton_status": "BLOCKED",
+      "skeleton_status": "VERIFIED_LOCAL",
       "annex": "docs/campaigns/reports/C12.md"
     },
     {
@@ -3919,7 +3919,7 @@
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
       ],
-      "skeleton_status": "BLOCKED",
+      "skeleton_status": "VERIFIED_LOCAL",
       "annex": "docs/campaigns/reports/C31.md"
     },
     {
