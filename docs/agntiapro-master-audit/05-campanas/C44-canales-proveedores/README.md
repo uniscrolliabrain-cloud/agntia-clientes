@@ -1,0 +1,3 @@
+# C44 — Canales reales, webhooks, outbox y receipts
+**PLANIFICADO, NO IMPLEMENTADO POR ESTE GPT.** Baseline main 6fa3d796a2f5d3a0ab063db004c1adcdac1db4d6; dependencia C43. Fuente docs/concept-master/CONCEPT-MASTER.md. src/domain/canales-proveedores/ es ruta PROPUESTA; confirmar rutas existentes con git ls-files antes de modificar. No tocar agente ni main.
+Objetivo: implementar y certificar Canales reales, webhooks, outbox y receipts con pruebas tenant A/B, autoridad, idempotencia y evidencias. Orden W01 contratos → W02 core → W03 integración → W04 certificación. Gate G5 requiere aprobación humana y proveedor real.
