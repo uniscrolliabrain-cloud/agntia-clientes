@@ -1,0 +1,4 @@
+# Integración con agente
+PROPUESTO: adaptador HTTP o paquete de contratos versionado; `agente` invoca capacidades nominadas mediante ExecutionRequestV1; Clientes devuelve resultado + evidenceRefs; eventos de dominio sin PII. No importar código privado del kernel.
+Antes de integración: fijar SHA de ambos repos, mapear autenticación/membresía, AuthorityMap de identidad/casos, scopes de WorkOrder, política de aprobaciones, correlation/causation, health y timeout, errores y semántica de receipts. Ejecutar tests contractuales bidireccionales, A/B tenants, revocación, duplicados, retry y outcome_unknown.
+V2 es propuesta, no dependencia obligatoria; usar adapter provisional con feature flag. Cambios potenciales en agente: registro de capabilities, cliente HTTP, event mapping, aprobación y workspace; NO aplicados aquí.
