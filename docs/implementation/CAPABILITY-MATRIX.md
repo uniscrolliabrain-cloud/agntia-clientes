@@ -35,5 +35,6 @@ ejecutado contra un proveedor real. Estados: `documented` ≠ `verified`.
 5. Probar lectura y escritura con dos tenants sintéticos.
 6. Solo entonces `requireCapability` devolverá `verified` y el adaptador se usará desde el worker.
 
-El canal WhatsApp permanece en `documentation_revalidation_required` hasta resolver el 429 y
-fijar versión, plantillas y ventana vigentes.
+El canal WhatsApp tiene su documentación revalidada el 2026-11-20 (`WHATSAPP_DOCUMENTED`: ventana
+de 24 h, plantillas preaprobadas, tres categorías) pero sigue en `account_not_configured`: la
+versión de Graph y las plantillas aprobadas se obtienen por discovery, no por suposición.

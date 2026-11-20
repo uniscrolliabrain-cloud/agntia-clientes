@@ -26,7 +26,7 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 | C17 | [Zammad y portabilidad de helpdesk](C17.md) | NOT_VERIFIED |
 | C18 | [Canal web y sesiones de contacto](C18.md) | PASS |
 | C19 | [Correo transaccional y threading](C19.md) | PASS |
-| C20 | [WhatsApp oficial bajo capacidad confirmada](C20.md) | BLOCKED |
+| C20 | [WhatsApp oficial bajo capacidad confirmada](C20.md) | NOT_VERIFIED |
 | C21 | [Inbox, webhooks y evidencia adjunta](C21.md) | PASS |
 | C22 | [Casos y contrato de resolución](C22.md) | PASS |
 | C23 | [SLA, calendario y routing determinista](C23.md) | PASS |
@@ -53,8 +53,8 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 ## Lectura rápida
 
 - **PASS** (ejecutado y verificado en local): 34 fases.
-- **NOT_VERIFIED** (código y contrato listos, proveedor o runtime real ausente): 7 fases.
-- **BLOCKED** (deliberadamente fuera de alcance en el esqueleto): 1 fases.
+- **NOT_VERIFIED** (código y contrato listos, proveedor o runtime real ausente): 8 fases.
+- **BLOCKED** (deliberadamente fuera de alcance en el esqueleto): 0 fases.
 
 Ningún PASS de este documento equivale a un gate de proveedor real. Ver
 [CAPABILITY-MATRIX](../../implementation/CAPABILITY-MATRIX.md).

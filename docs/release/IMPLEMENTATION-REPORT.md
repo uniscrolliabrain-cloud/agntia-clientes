@@ -16,11 +16,11 @@ privacidad, evals y CI. Cada fase tiene su anexo en
 | Comprobación | Comando | Resultado |
 |---|---|---|
 | Tipos | `npm run typecheck` | sin errores |
-| Tests | `npm test` | **107/107 pass, 0 fail** |
+| Tests | `npm test` | **114/114 pass, 0 fail** |
 | E2E A–I | `npm run eval` | **9/9 PASS** → `artifacts/e2e-report.json` |
 | Manifiesto | `npm run reports` | 42 anexos, conteos 42/294/84 intactos |
 
-Reparto de gates por fase: **33 PASS**, **8 NOT_VERIFIED**, **1 BLOCKED** (equivalen a
+Reparto de gates por fase: **34 PASS**, **8 NOT_VERIFIED**, **0 BLOCKED** (equivalen a
 `TEST_VERIFIED`, `CODE_VERIFIED` y `PROPOSED` en el vocabulario del factory). C11, C12 y C31
 dejaron de estar bloqueadas al implementarse identidad revisable, importación idempotente y
 propuestas de compensación sin ejecución.
@@ -50,8 +50,9 @@ Se revisaron los diez documentos de preparación y se corrigió lo que faltaba (
    falta elegir `PgStore` por `DATABASE_URL` y repetir la prueba en Supabase staging.
 2. **Sin proveedores reales**: Chatwoot, Twenty, Frappe, Zammad, Resend y WhatsApp tienen
    contrato y transporte fake. Cero credenciales, cero llamadas, cero receipts reales.
-3. **WhatsApp bloqueado**: Meta devolvió HTTP 429 en la investigación; el canal sigue en
-   `documentation_revalidation_required` y ningún envío es posible.
+3. **WhatsApp sin cuenta**: la documentación de Meta se revalidó el 2026-11-20 (ventana de 24 h,
+   plantillas preaprobadas, tres categorías) y hay tests de esas reglas, pero sin WABA el canal
+   sigue en `account_not_configured` y ningún envío es posible.
 4. **Anam no configurado**: la ruta de sesión responde 503 con `fallback: text_only`.
 5. **Bridge del padre inexistente**: `HOST_BRIDGE_NOT_VERIFIED`; no se ha tocado `/agente`.
 6. **UI probada en navegador, no con lector de pantalla**: `/portal` se abrió en Chromium real

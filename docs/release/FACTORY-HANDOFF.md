@@ -9,7 +9,7 @@ Fecha: 2026-11-14 · SHA de referencia auditado: `6a3775d` (main) → este commi
 |---|---|
 | Campañas en manifiesto | 42 campañas, 294 tareas, 84 gates |
 | Código | 61 archivos en `src/`, TypeScript estricto, sin build |
-| Tests | 11 suites → **107 tests** tras esta campaña |
+| Tests | 12 suites → **114 tests** tras esta campaña |
 | E2E | A–I, 9/9 PASS, artefacto `artifacts/e2e-report.json` |
 | CI | `.github/workflows/ci.yml` (`verify` + `docs`), verde en `main` (`run 43653540108`) |
 | Dependencias | `hono`, `zod`, `typescript`, `@types/node`; lockfile reparado y verificado con `npm ci` |
@@ -29,7 +29,8 @@ rama; se conservó la versión de `main` literal en [PROGRAM.md](../implementati
 | C31 renovaciones/reclamaciones | BLOCKED | PASS local | `src/domain/renewals.ts`: calendario determinista, intake de reclamaciones, propuestas con aprobaciones por rol, `execute()` prohibido |
 | C33 portal | NOT_VERIFIED | NOT_VERIFIED (evidencia nueva) | Abierto en Chromium real: 200 sin errores de consola, `/` → `/portal`, landmarks correctos, `lang=es`; botones que exigirían sesión quedan `disabled` y ya no fingen una acción |
 
-Gates tras el cambio: **33 PASS locales, 8 NOT_VERIFIED, 1 BLOCKED** (C20 WhatsApp, que sigue
+Gates tras el cambio: **34 PASS locales, 8 NOT_VERIFIED, 0 BLOCKED** (C20 WhatsApp pasó de
+BLOCKED a NOT_VERIFIED al revalidarse su documentación, que sigue
 sin capacidad verificada por el 429 de Meta). El detalle por fase está en
 [campaigns/reports](../campaigns/reports/README.md).
 
@@ -52,7 +53,7 @@ Decisiones de diseño que no se relajaron:
 ```bash
 npm ci
 npm run typecheck
-npm test        # 107/107
+npm test        # 114/114
 npm run eval    # 9/9 A–I
 npm run reports # 42 anexos, manifiesto intacto
 ```
@@ -67,7 +68,7 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 | Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`); Supabase staging pendiente |
 | Chatwoot, Twenty, Frappe, Zammad | Contrato + transporte fake; **no conectado** |
 | Resend | Contrato; **no conectado** |
-| WhatsApp | `documentation_revalidation_required`; **BLOCKED** |
+| WhatsApp | Documentación revalidada (24 h, 3 categorías); `account_not_configured`; **NOT_VERIFIED** |
 | Anam | `503` con `fallback: text_only`; **NOT_CONFIGURED** |
 | Bridge padre | `HOST_BRIDGE_NOT_VERIFIED` |
 

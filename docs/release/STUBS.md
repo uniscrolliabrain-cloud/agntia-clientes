@@ -22,7 +22,7 @@ una decisión de negocio.
 | C16 | `src/adapters/crm.ts` (`frappe`) | Contrato schema-driven | Sitio Frappe CRM/Helpdesk + API key/secret |
 | C17 | `src/adapters/crm.ts` (`zammad`) | Contrato schema-driven | Instancia Zammad + token; decidir portabilidad |
 | C19 | `src/channels/email.ts` | Contrato + transporte fake | Dominio verificado y clave de Resend (o proveedor elegido) |
-| C20 | `src/channels/whatsapp.ts` | `documentation_revalidation_required` | Revalidar documentación de Meta (429 en la investigación), WABA y plantillas aprobadas |
+| C20 | `src/channels/whatsapp.ts` | `account_not_configured` (documentación revalidada 2026-11-20) | WABA, número de prueba, token y plantillas aprobadas |
 | C32 | `src/presence/anam.ts` | `503` con `fallback: text_only` | API key de Anam y política de grabación aceptada |
 | C35 | `src/bridge/host.ts` | `HOST_BRIDGE_NOT_VERIFIED` | Autorización explícita para tocar `/agente` y resolver la divergencia 12/16 |
 | C03 | `src/auth/jwt.ts` | Verificado con claves de fixture | Proyecto Supabase real (issuer, JWKS, claims) |
