@@ -47,9 +47,9 @@ export const PHASES_3: PhaseAnnex[] = [
     title: "Portal responsive y revisión humana",
     status: "NOT_VERIFIED",
     objective: "Construir superficies simples para owner, operador y contacto externo.",
-    delivered: ["src/app/ui.ts: marco HTML accesible, ES, viewport, foco visible, sin hover obligatorio"],
-    verified: ["Test API: /portal responde 200 con `lang=\"es\"` y viewport", "Sin datos privados en el HTML"],
-    deviations: ["No hay SPA ni estado real: es un marco visual server-rendered."],
+    delivered: ["src/app/ui.ts: marco HTML accesible, ES, viewport, foco visible, sin hover obligatorio", "Raíz `/` redirige a `/portal`, favicon en línea y controles no operativos deshabilitados con explicación"],
+    verified: ["Test API: /portal responde 200 con `lang=\"es\"` y viewport", "Sin datos privados en el HTML", "Navegador real (Chromium sobre el hostname de preview): render 200, cero errores de consola, `/` → 302 `/portal`, landmarks header/nav/main/section/aside, botones `disabled`"],
+    deviations: ["No hay SPA ni estado real: es un marco visual server-rendered.", "Los botones de sesión y de aprobación están deshabilitados a propósito: no fingen una acción que exige sesión y proveedor."],
     pending: ["Flujos completos inbox/caso/aprobación en navegador", "Prueba con lector de pantalla y móvil real"],
   },
   {

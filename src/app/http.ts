@@ -107,6 +107,8 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
   );
 
   // Portal HTML mínimo (sin datos si no hay sesión: la UI real usa Supabase).
+  // Raíz del servicio: el portal es la única superficie pública útil.
+  app.get("/", (c) => c.redirect("/portal", 302));
   app.get("/portal", (c) => c.html(renderPortalHome()));
   app.get("/portal/cases/:caseId", (c) => c.html(renderCasePage(c.req.param("caseId"))));
 
