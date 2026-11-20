@@ -12,7 +12,7 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 | C03 | [Autenticación Supabase y principal](C03.md) | PASS |
 | C04 | [Twin y trazabilidad nativa](C04.md) | PASS |
 | C05 | [DTOs y contratos runtime](C05.md) | PASS |
-| C06 | [Postgres, RLS y migraciones](C06.md) | NOT_VERIFIED |
+| C06 | [Postgres, RLS y migraciones](C06.md) | PASS |
 | C07 | [Finalidades, preferencias y permisos de comunicación](C07.md) | PASS |
 | C08 | [Acuerdos, entitlements y encargos](C08.md) | PASS |
 | C09 | [Registro de proveedores, OAuth y secretos](C09.md) | PASS |
@@ -52,8 +52,8 @@ verdad en cada campaña, qué se verificó, qué se desvió y qué queda pendien
 
 ## Lectura rápida
 
-- **PASS** (ejecutado y verificado en local): 33 fases.
-- **NOT_VERIFIED** (código y contrato listos, proveedor o runtime real ausente): 8 fases.
+- **PASS** (ejecutado y verificado en local): 34 fases.
+- **NOT_VERIFIED** (código y contrato listos, proveedor o runtime real ausente): 7 fases.
 - **BLOCKED** (deliberadamente fuera de alcance en el esqueleto): 1 fases.
 
 Ningún PASS de este documento equivale a un gate de proveedor real. Ver

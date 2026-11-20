@@ -1,9 +1,17 @@
 -- CLI-C06 · RLS y roles.
 -- El tenant efectivo lo fija el servidor por transacción (`set local app.tenant_id`).
--- NO EJECUTADO en este entorno (sin Postgres).
+-- Verificado con PostgreSQL real: `npm run db:verify`.
 
-create role app_api nologin;
-create role app_worker nologin;
+-- Idempotente: un replay de migraciones no debe romper el despliegue.
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'app_api') then
+    create role app_api nologin;
+  end if;
+  if not exists (select 1 from pg_roles where rolname = 'app_worker') then
+    create role app_worker nologin;
+  end if;
+end $$;
 
 grant select, insert, update on all tables in schema public to app_api;
 grant select, insert, update on all tables in schema public to app_worker;
@@ -34,6 +42,9 @@ begin
     'outbound_intents','webhook_receipts','jobs','audit_log','budget_reservations'
   ]
   loop
+    execute format('drop policy if exists %I_tenant_read on %I', t, t);
+    execute format('drop policy if exists %I_tenant_write on %I', t, t);
+    execute format('drop policy if exists %I_tenant_update on %I', t, t);
     execute format(
       'create policy %I_tenant_read on %I for select using (tenant_id = current_setting(''app.tenant_id'', true))',
       t, t);
@@ -46,8 +57,14 @@ begin
   end loop;
 end $$;
 
--- audit_log es append-only: sin política de update/delete.
+-- audit_log es append-only: sin política de update/delete y sin privilegio de
+-- DELETE para los roles de la app (el intento falla con 42501, no con "0 filas").
 drop policy if exists audit_log_tenant_update on audit_log;
+
+-- El tenant solo puede leer su propia fila; las altas las hace el owner.
+drop policy if exists tenants_self_read on tenants;
+create policy tenants_self_read on tenants
+  for select using (id = current_setting('app.tenant_id', true));
 
 -- service_role/BYPASSRLS no se consideran aislamiento: el API siempre fija el tenant
 -- por transacción y valida membresía en el PEP (ver src/auth/principal.ts).

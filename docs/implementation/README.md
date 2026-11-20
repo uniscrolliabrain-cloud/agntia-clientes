@@ -60,6 +60,7 @@ del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFI
 npm install        # dependencias del lockfile
 npm run typecheck  # tsc --noEmit
 npm test           # 107 tests (node:test)
+npm run db:verify  # migraciones + RLS en PostgreSQL real (efímero, sin Docker)
 npm run eval       # E2E A–I → artifacts/e2e-report.json
 npm start          # API en :3000 (falla cerrada sin Supabase)
 ```

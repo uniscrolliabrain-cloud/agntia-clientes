@@ -64,7 +64,7 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 | Integración | Estado |
 |---|---|
 | Supabase Auth (JWT) | Verificado con claves de fixture; **sin proyecto real** |
-| Postgres / RLS | Migraciones escritas; **NOT_VERIFIED** |
+| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`); Supabase staging pendiente |
 | Chatwoot, Twenty, Frappe, Zammad | Contrato + transporte fake; **no conectado** |
 | Resend | Contrato; **no conectado** |
 | WhatsApp | `documentation_revalidation_required`; **BLOCKED** |
@@ -73,9 +73,10 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 
 ## 6. Riesgos y deuda técnica
 
-1. Persistencia en memoria: las garantías de RLS y transacción no están probadas en SQL.
+1. El API sirve desde memoria: `PgStore` está verificado contra PostgreSQL real pero todavía no
+   se selecciona por `DATABASE_URL`, así que producción no persiste.
 2. El bus ADTC no tiene transporte; `traceId` se deriva localmente.
-3. La UI del portal no se ha abierto en navegador ni probado con lector de pantalla.
+3. La UI del portal se abrió en Chromium (C33) pero no se probó con lector de pantalla ni móvil.
 4. El `SecretStore` de producción no existe (solo memoria).
 5. Divergencia 12/16 del catálogo de personas del padre sin resolver.
 6. Las actions de CI emiten avisos de Node 20 (no fallan).
@@ -108,6 +109,6 @@ identidad/tenants, cambios propuestos (no aplicados) y rollback.
 
 ## 11. Siguiente paso recomendado
 
-Levantar un Postgres real con las migraciones y ejecutar los gates de RLS (C06), después un
-único proveedor de conversaciones con discovery real (C13/C14). Sin eso, el resto de PASS son
-locales y así están declarados.
+Conectar el `PgStore` ya verificado al API por `DATABASE_URL` y repetir `npm run db:verify`
+contra Supabase staging; después, un único proveedor de conversaciones con discovery real
+(C13/C14). Sin credenciales, el resto sigue en [STUBS.md](STUBS.md).

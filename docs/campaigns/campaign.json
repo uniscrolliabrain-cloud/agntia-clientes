@@ -767,7 +767,7 @@
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
       ],
-      "skeleton_status": "NOT_VERIFIED",
+      "skeleton_status": "VERIFIED_LOCAL",
       "annex": "docs/campaigns/reports/C06.md"
     },
     {
