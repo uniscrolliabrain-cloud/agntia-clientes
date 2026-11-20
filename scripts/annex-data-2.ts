@@ -75,12 +75,23 @@ export const PHASES_2: PhaseAnnex[] = [
   {
     code: "C20",
     title: "WhatsApp oficial bajo capacidad confirmada",
-    status: "BLOCKED",
+    status: "NOT_VERIFIED",
     objective: "Conectar conversaciones cumpliendo permisos y condiciones vigentes.",
-    delivered: ["src/channels/whatsapp.ts con estado `documentation_revalidation_required`", "Comprobación de plantilla/categoría/ventana cuando exista capacidad"],
-    verified: ["Test: sin capacidad verificada, cualquier envío → unsupported", "Mensaje libre fuera de ventana → 403"],
-    deviations: ["Meta devolvió HTTP 429 en la investigación: no se fija versión, ventana ni gratuidad."],
-    pending: ["Revalidar documentación de Meta y fijar graphVersion", "Sandbox autorizado con número de prueba"],
+    delivered: [
+      "src/channels/whatsapp.ts con estado `account_not_configured` y `WHATSAPP_DOCUMENTED` con fuentes",
+      "test/whatsapp.test.ts: ventana de 24 h, plantillas por categoría y timeout sin reintento",
+    ],
+    verified: [
+      "Documentación revalidada el 2026-11-20: ventana de servicio de 24 h reiniciable, plantillas preaprobadas fuera de ventana, categorías marketing/utility/authentication",
+      "Test: mensaje libre a 24 h exactas se permite; a 24 h + 1 s se rechaza",
+      "Test: plantilla de marketing con finalidad de soporte → 403; plantilla no verificada → unsupported",
+      "Test: timeout deja `outcome_unknown` sin reintento ciego",
+    ],
+    deviations: [
+      "La documentación ya responde (el 429 anterior era transitorio), pero documentación no es capacidad: sin WABA y número no hay envío.",
+      "`graphVersion` y plantillas aprobadas se toman de discovery; no se fijan por suposición.",
+    ],
+    pending: ["Cuenta WABA, número de prueba y token de mínimo privilegio", "Plantillas aprobadas y prueba de entrega con receipt real"],
   },
   {
     code: "C21",

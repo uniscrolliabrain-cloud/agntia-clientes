@@ -2,9 +2,16 @@ import { conflict, forbidden, unsupported } from "../lib/errors.ts";
 import type { DiscoveryService } from "../integrations/discovery.ts";
 
 /**
- * WhatsApp oficial (CLI-C20): deshabilitado hasta capacidad confirmada.
- * La documentación de Meta devolvió HTTP 429 durante la investigación, así que
- * el canal queda NOT_VERIFIED y no se inventan ventanas, plantillas ni gratuidad.
+ * WhatsApp oficial (CLI-C20).
+ *
+ * Reglas documentadas y revalidadas el 2026-11-20 en la documentación oficial de
+ * Meta (Cloud API): la ventana de servicio es de 24 h y se reinicia con cada
+ * mensaje o llamada del usuario; fuera de la ventana solo se envían plantillas
+ * preaprobadas; las categorías son marketing, utility y authentication.
+ *
+ * Documentación ≠ capacidad: sin WABA, número y plantillas aprobadas, el canal
+ * sigue deshabilitado (`account_not_configured`) y no se inventa gratuidad ni
+ * versión de Graph. La versión y las plantillas llegan por discovery (C10).
  */
 export interface WhatsAppCapabilities {
   verified: boolean;
@@ -13,11 +20,25 @@ export interface WhatsAppCapabilities {
   sessionWindowMinutes: number | null;
 }
 
+/** Hechos de la plataforma, con su fuente; no son una capacidad del tenant. */
+export const WHATSAPP_DOCUMENTED = {
+  sessionWindowMinutes: 24 * 60,
+  requiresApprovedTemplateOutsideWindow: true,
+  templateCategories: ["marketing", "utility", "authentication"] as const,
+  templatesRequireApproval: true,
+  revalidatedAt: "2026-11-20",
+  sources: [
+    "https://developers.facebook.com/docs/whatsapp/cloud-api/guides/send-messages",
+    "https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/overview",
+    "https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/template-categorization",
+  ],
+} as const;
+
 export const WHATSAPP_UNVERIFIED: WhatsAppCapabilities = {
   verified: false,
   graphVersion: null,
   templates: [],
-  sessionWindowMinutes: null,
+  sessionWindowMinutes: WHATSAPP_DOCUMENTED.sessionWindowMinutes,
 };
 
 export class WhatsAppChannel {
@@ -40,7 +61,7 @@ export class WhatsAppChannel {
 
   state(): { enabled: boolean; reason: string } {
     if (!this.#capabilities.verified) {
-      return { enabled: false, reason: "documentation_revalidation_required" };
+      return { enabled: false, reason: "account_not_configured" };
     }
     if (!this.#capabilities.graphVersion) {
       return { enabled: false, reason: "graph_version_not_pinned" };

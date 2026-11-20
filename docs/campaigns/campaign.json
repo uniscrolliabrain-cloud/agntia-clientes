@@ -2529,7 +2529,7 @@
         "Receipts/correlación sanitizados sin datos reales ni secretos",
         "Riesgos y siguiente gate"
       ],
-      "skeleton_status": "BLOCKED",
+      "skeleton_status": "NOT_VERIFIED",
       "annex": "docs/campaigns/reports/C20.md"
     },
     {
