@@ -16,7 +16,7 @@ privacidad, evals y CI. Cada fase tiene su anexo en
 | Comprobación | Comando | Resultado |
 |---|---|---|
 | Tipos | `npm run typecheck` | sin errores |
-| Tests | `npm test` | **106/106 pass, 0 fail** |
+| Tests | `npm test` | **107/107 pass, 0 fail** |
 | E2E A–I | `npm run eval` | **9/9 PASS** → `artifacts/e2e-report.json` |
 | Manifiesto | `npm run reports` | 42 anexos, conteos 42/294/84 intactos |
 

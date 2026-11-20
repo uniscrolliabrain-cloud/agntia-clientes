@@ -3,6 +3,10 @@
  * La autenticación real la resuelve Supabase en el cliente; estas páginas son
  * el marco visual, no una fuente de datos ni un permiso.
  */
+/** Favicon en línea: evita el 404 de /favicon.ico sin añadir binarios. */
+const ICON =
+  '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%230b5fff%22/%3E%3C/svg%3E" />';
+
 const STYLE = `
 :root { color-scheme: light dark; --fg:#111; --bg:#fff; --muted:#555; --line:#d0d0d0; --accent:#0b5fff; }
 @media (prefers-color-scheme: dark) { :root { --fg:#f2f2f2; --bg:#111; --muted:#aaa; --line:#333; } }
@@ -19,6 +23,7 @@ small, .muted { color:var(--muted); }
 ul { padding-left:1.1rem; margin:.5rem 0; }
 button { font:inherit; padding:.5rem .9rem; border-radius:.375rem; border:1px solid var(--line); background:var(--bg); color:var(--fg); }
 button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+button:disabled { opacity:.55; cursor:not-allowed; }
 :focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
 .badge { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:.05rem .5rem; font-size:.8rem; }
 `;
@@ -29,6 +34,7 @@ export function renderPortalHome(): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+${ICON}
 <title>Agntia Clientes · Portal</title>
 <style>${STYLE}</style>
 </head>
@@ -53,8 +59,8 @@ export function renderPortalHome(): string {
   <aside aria-labelledby="twin-title">
     <h2 id="twin-title">Asistente</h2>
     <p>La presencia por vídeo (Anam) explica entregables y evidencia. No firma, no aprueba y no recibe la API key.</p>
-    <p><button class="primary" type="button" aria-describedby="twin-note">Abrir sesión (requiere Supabase)</button></p>
-    <p id="twin-note" class="muted">Sin configuración de Anam el portal ofrece solo texto.</p>
+    <p><button class="primary" type="button" disabled aria-describedby="twin-note">Abrir sesión (requiere Supabase y Anam)</button></p>
+    <p id="twin-note" class="muted">Demostración: el botón se habilita solo con sesión Supabase y Anam configurado. Hoy el portal ofrece solo texto.</p>
   </aside>
 </main>
 </body>
@@ -68,6 +74,7 @@ export function renderCasePage(caseId: string): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+${ICON}
 <title>Caso ${safeCaseId} · Agntia Clientes</title>
 <style>${STYLE}</style>
 </head>
@@ -87,11 +94,9 @@ export function renderCasePage(caseId: string): string {
       <li class="muted">v1 retirada: no se cita</li>
     </ul>
     <h2>Acciones</h2>
-    <form method="post" action="/v1/clientes/outbound-intents" aria-describedby="approve-note">
-      <p><label>Aprobación vinculada al texto y destinatario exactos.</label></p>
-      <p><button class="primary" type="submit">Aprobar y enviar</button></p>
-    </form>
-    <p id="approve-note" class="muted">Requiere sesión Supabase y capability <code>reply.approve</code>. Un cambio de texto, canal o adjunto invalida la aprobación.</p>
+    <p>Aprobación vinculada al texto y destinatario exactos.</p>
+    <p><button class="primary" type="button" disabled aria-describedby="approve-note">Aprobar y enviar (requiere sesión)</button></p>
+    <p id="approve-note" class="muted">Demostración sin envío: la aprobación real exige sesión Supabase y capability <code>reply.approve</code>. Un cambio de texto, canal o adjunto invalida la aprobación.</p>
   </section>
   <aside aria-labelledby="evidence-title">
     <h2 id="evidence-title">Evidencia</h2>

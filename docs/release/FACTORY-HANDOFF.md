@@ -9,7 +9,7 @@ Fecha: 2026-11-14 · SHA de referencia auditado: `6a3775d` (main) → este commi
 |---|---|
 | Campañas en manifiesto | 42 campañas, 294 tareas, 84 gates |
 | Código | 61 archivos en `src/`, TypeScript estricto, sin build |
-| Tests | 10 suites → **106 tests** tras esta campaña |
+| Tests | 11 suites → **107 tests** tras esta campaña |
 | E2E | A–I, 9/9 PASS, artefacto `artifacts/e2e-report.json` |
 | CI | `.github/workflows/ci.yml` (`verify` + `docs`), verde en `main` (`run 43653540108`) |
 | Dependencias | `hono`, `zod`, `typescript`, `@types/node`; lockfile reparado y verificado con `npm ci` |
@@ -27,6 +27,7 @@ rama; se conservó la versión de `main` literal en [PROGRAM.md](../implementati
 | C11 identidad | BLOCKED | PASS local | `src/domain/identity.ts`: vínculos con evidencia, merge revisable con alias, deshacer, aislamiento por tenant |
 | C12 importación | BLOCKED | PASS local | `src/service/import.ts`: staging con cursor, dry-run, cuarentena por fila, commit idempotente por `externalId` |
 | C31 renovaciones/reclamaciones | BLOCKED | PASS local | `src/domain/renewals.ts`: calendario determinista, intake de reclamaciones, propuestas con aprobaciones por rol, `execute()` prohibido |
+| C33 portal | NOT_VERIFIED | NOT_VERIFIED (evidencia nueva) | Abierto en Chromium real: 200 sin errores de consola, `/` → `/portal`, landmarks correctos, `lang=es`; botones que exigirían sesión quedan `disabled` y ya no fingen una acción |
 
 Gates tras el cambio: **33 PASS locales, 8 NOT_VERIFIED, 1 BLOCKED** (C20 WhatsApp, que sigue
 sin capacidad verificada por el 429 de Meta). El detalle por fase está en
@@ -51,7 +52,7 @@ Decisiones de diseño que no se relajaron:
 ```bash
 npm ci
 npm run typecheck
-npm test        # 106/106
+npm test        # 107/107
 npm run eval    # 9/9 A–I
 npm run reports # 42 anexos, manifiesto intacto
 ```

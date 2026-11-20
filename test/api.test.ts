@@ -177,6 +177,21 @@ test("C18: portal HTML accesible sin exponer datos", async () => {
   assert.ok(html.includes("<html lang=\"es\""));
   assert.ok(html.includes("viewport"));
   assert.equal(html.includes("sk_live"), false);
+  // C33: favicon en línea y controles no operativos marcados como tales.
+  assert.ok(html.includes('rel="icon"'));
+  assert.ok(html.includes("disabled"));
+});
+
+test("C33: la raíz redirige al portal y el caso no finge enviar", async () => {
+  const root = await app().fetch(new Request("http://localhost/"));
+  assert.equal(root.status, 302);
+  assert.equal(root.headers.get("location"), "/portal");
+  const casePage = await app().fetch(new Request("http://localhost/portal/cases/case_ana_1"));
+  assert.equal(casePage.status, 200);
+  const html = await casePage.text();
+  assert.ok(html.includes('rel="icon"'));
+  assert.ok(html.includes("disabled"));
+  assert.equal(html.includes("method=\"post\""), false);
 });
 
 test("C21: webhook sin firma válida no entra", async () => {
