@@ -44,18 +44,20 @@ Se revisaron los diez documentos de preparación y se corrigió lo que faltaba (
 
 ## Límites que se declaran sin rodeos
 
-1. **Sin Postgres ni RLS ejecutada**: hay migraciones con FK compuestas y políticas RLS, y un
-   repositorio en memoria con las mismas garantías observables. El gate de base de datos es
-   `NOT_VERIFIED`.
+1. **Postgres verificado, no en Supabase**: `npm run db:verify` levanta PostgreSQL 18.7 embebido
+   y pasa 18/18 garantías (aislamiento A/B, fail-closed, FK compuesta, unicidad scoped,
+   `audit_log` append-only) con un rol no-owner. El API sigue sirviendo desde el store en memoria:
+   falta elegir `PgStore` por `DATABASE_URL` y repetir la prueba en Supabase staging.
 2. **Sin proveedores reales**: Chatwoot, Twenty, Frappe, Zammad, Resend y WhatsApp tienen
    contrato y transporte fake. Cero credenciales, cero llamadas, cero receipts reales.
 3. **WhatsApp bloqueado**: Meta devolvió HTTP 429 en la investigación; el canal sigue en
    `documentation_revalidation_required` y ningún envío es posible.
 4. **Anam no configurado**: la ruta de sesión responde 503 con `fallback: text_only`.
 5. **Bridge del padre inexistente**: `HOST_BRIDGE_NOT_VERIFIED`; no se ha tocado `/agente`.
-6. **UI sin probar en navegador**: hay marco HTML accesible servido en `/portal`, pero no se ha
-   abierto en un navegador ni probado con lector de pantalla.
-7. **CI no ejecutada en GitHub**: el workflow existe; los mismos comandos se ejecutaron en local.
+6. **UI probada en navegador, no con lector de pantalla**: `/portal` se abrió en Chromium real
+   (capturas en `docs/implementation/evidence/`) y se corrigieron tres defectos; falta un flujo
+   completo y revisión con lector de pantalla y móvil real. C33 sigue `NOT_VERIFIED`.
+7. **CI en GitHub en verde**: jobs `verify`, `docs` y `database` (migraciones + RLS reales).
 
 ## Hallazgos sobre la documentación previa
 
@@ -81,9 +83,11 @@ Estos bloques no se simulan: quedan `BLOCKED` con su motivo en el anexo correspo
 ## Cómo continuar
 
 1. Revisar este informe y los 42 anexos; decidir qué se ajusta.
-2. Autorizar un entorno con Postgres/Supabase para convertir `C06` y `C03` en PASS reales.
+2. Autorizar Supabase staging para convertir `C03` en PASS real y repetir allí las migraciones de
+   C06 ya verificadas en PostgreSQL local.
 3. Elegir **un** backend de conversaciones y ejecutar discovery real (C13/C14/C15–C17).
 4. Resolver la divergencia 12/16 y congelar revisión canónica del twin.
 5. Solo entonces: piloto con datos sintéticos, y después producción con aprobación explícita.
 
-No se ha publicado nada, no se ha desplegado nada y no se ha pushado ningún commit.
+No se ha desplegado nada ni se ha activado ningún proveedor. El código y los anexos están en
+`main`; los servicios externos siguen sin credenciales y así se declaran en [STUBS.md](STUBS.md).

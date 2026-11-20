@@ -99,16 +99,30 @@ export const PHASES_1: PhaseAnnex[] = [
   {
     code: "C06",
     title: "Postgres, RLS y migraciones",
-    status: "NOT_VERIFIED",
+    status: "PASS",
     objective: "Persistir entidades, relaciones, auditoría y colas sin fuga ni pérdida.",
     delivered: [
       "src/storage/repository.ts (TenantTable con scoping, unicidad compuesta y CAS)",
       "src/storage/memory.ts (store completo + audit + webhook receipts)",
       "src/storage/migrations/0001_schema.sql, 0002_rls.sql, 0003_indexes.sql",
+      "src/storage/pg.ts (PgStore: `set local app.tenant_id` por transacción, sin tenant en los datos)",
+      "scripts/db-verify.ts + `npm run db:verify`: PostgreSQL efímero sin Docker ni root",
     ],
-    verified: ["test/tenancy-knowledge.test.ts: scoping, unicidad, CAS", "Migraciones escritas con FK compuestas y RLS por app.tenant_id"],
-    deviations: ["No hay Postgres en el entorno: la verificación es del repositorio en memoria, no de RLS real."],
-    pending: ["Ejecutar migraciones en Postgres real y probar roles/BYPASSRLS", "Implementar PgStore con `set local app.tenant_id`"],
+    verified: [
+      "test/tenancy-knowledge.test.ts: scoping, unicidad, CAS en memoria",
+      "`npm run db:verify`: 18/18 garantías en PostgreSQL 18.7 real, conectando como rol no-owner (RLS aplica)",
+      "Lectura aislada A/B, fail-closed sin `app.tenant_id`, insert cruzado 42501, FK compuesta 23503",
+      "Unicidad scoped de `operation_key` y de webhooks, `audit_log` sin UPDATE y sin privilegio DELETE",
+      "PgStore: el tenant no se arrastra entre transacciones de una conexión reutilizada; claim idempotente",
+    ],
+    deviations: [
+      "PostgreSQL 18.7 embebido (binarios npm), no la versión de Supabase: las políticas son estándar, falta confirmar en staging.",
+      "El API sigue usando el store en memoria; `PgStore` está verificado pero aún no seleccionado por `DATABASE_URL`.",
+    ],
+    pending: [
+      "Elegir store por entorno (`DATABASE_URL` → PgStore) y probar contra Supabase staging",
+      "Rol de login real con `grant app_api` y rotación de credenciales vía Doppler",
+    ],
   },
   {
     code: "C07",

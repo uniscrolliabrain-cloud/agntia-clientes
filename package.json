@@ -14,6 +14,7 @@
     "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
     "eval": "node src/eval/run-e2e.ts",
     "reports": "node scripts/write-campaign-annexes.ts",
+    "db:verify": "node scripts/db-verify.ts",
     "verify": "npm run typecheck && npm test"
   },
   "dependencies": {
@@ -22,6 +23,9 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.5",
+    "embedded-postgres": "^18.7.0-beta.19",
+    "pg": "^8.16.3",
     "typescript": "^5.9.3"
   }
 }
