@@ -107,6 +107,7 @@ export const PHASES_1: PhaseAnnex[] = [
       "src/storage/migrations/0001_schema.sql, 0002_rls.sql, 0003_indexes.sql",
       "src/storage/pg.ts (PgStore: `set local app.tenant_id` por transacción, sin tenant en los datos)",
       "scripts/db-verify.ts + `npm run db:verify`: PostgreSQL efímero sin Docker ni root",
+      "scripts/db-persistence.ts + `npm run db:persistence`: escritura en un proceso, reinicio de PostgreSQL y lectura en otro",
     ],
     verified: [
       "test/tenancy-knowledge.test.ts: scoping, unicidad, CAS en memoria",
@@ -114,6 +115,7 @@ export const PHASES_1: PhaseAnnex[] = [
       "Lectura aislada A/B, fail-closed sin `app.tenant_id`, insert cruzado 42501, FK compuesta 23503",
       "Unicidad scoped de `operation_key` y de webhooks, `audit_log` sin UPDATE y sin privilegio DELETE",
       "PgStore: el tenant no se arrastra entre transacciones de una conexión reutilizada; claim idempotente",
+      "`npm run db:persistence`: 10/10 — caso, contacto, auditoría e idempotencia sobreviven al fin del proceso y a un reinicio del servidor; aislamiento y fail-closed intactos",
     ],
     deviations: [
       "PostgreSQL 18.7 embebido (binarios npm), no la versión de Supabase: las políticas son estándar, falta confirmar en staging.",

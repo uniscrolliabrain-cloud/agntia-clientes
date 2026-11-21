@@ -125,6 +125,15 @@ export class TenantTx {
     );
   }
 
+  /** Lectura de auditoría del tenant activo (nunca escribe ni borra). */
+  async listAuditByPayloadRef(payloadRef: string): Promise<{ id: string; outcome: string }[]> {
+    const out = await this.#client.query<{ id: string; outcome: string }>(
+      `select id, outcome from audit_log where payload_ref = $1 order by occurred_at, id`,
+      [payloadRef],
+    );
+    return out.rows;
+  }
+
   /**
    * Idempotencia de efectos externos: `created=false` significa que la
    * operación ya existía en este tenant y no debe repetirse.
