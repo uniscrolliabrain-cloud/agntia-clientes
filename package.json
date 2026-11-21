@@ -16,6 +16,7 @@
     "reports": "node scripts/write-campaign-annexes.ts",
     "db:verify": "node scripts/db-verify.ts",
     "db:persistence": "node scripts/db-persistence.ts",
+    "db:http": "node scripts/db-http-durability.ts",
     "verify": "npm run typecheck && npm test"
   },
   "dependencies": {

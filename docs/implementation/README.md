@@ -44,8 +44,10 @@ del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFI
 
 ## Qué NO está implementado (y se declara)
 
-- **Postgres real / RLS ejecutada**: hay migraciones y repositorio en memoria con las mismas
-  garantías observables; el gate de base de datos sigue `NOT_VERIFIED`.
+- **Postgres real / RLS ejecutada**: verificada en PostgreSQL 18.7 efímero (`db:verify`,
+  `db:persistence`) y a través del API (`db:http`). Con `DATABASE_URL`, casos y auditoría se
+  sirven desde PostgreSQL; contactos, propuestas, aprobaciones, intents y outbox siguen en
+  memoria del proceso. Supabase staging no está provisionado.
 - **Proveedores reales** (Chatwoot, Twenty, Frappe, Zammad, Resend, Meta WhatsApp): adaptadores
   con contrato y transporte fake. Ninguna credencial, ninguna llamada, ningún receipt real.
 - **Anam real**: emisión local de token efímero de desarrollo; sin SDK ni sesión.
@@ -62,11 +64,12 @@ npm run typecheck  # tsc --noEmit
 npm test           # 114 tests (node:test)
 npm run db:verify  # migraciones + RLS en PostgreSQL real (efímero, sin Docker)
 npm run db:persistence  # escritura, reinicio de PostgreSQL y lectura en otro proceso
+npm run db:http    # API contra PostgreSQL: transición, SIGTERM, reinicio y relectura
 npm run eval       # E2E A–I → artifacts/e2e-report.json
 npm start          # API en :3000 (falla cerrada sin Supabase)
 ```
 
-Resultados de esta ejecución: typecheck OK · 114/114 tests OK · 9/9 escenarios OK · 18/18 garantías SQL · 10/10 garantías de persistencia.
+Resultados de esta ejecución: typecheck OK · 114/114 tests OK · 9/9 escenarios OK · 18/18 garantías SQL · 10/10 de persistencia · 13/13 a través del API HTTP con reinicio.
 El detalle por fase está en [`../campaigns/reports/`](../campaigns/reports/README.md).
 
 ## Mapa de artefactos prometidos por las campañas

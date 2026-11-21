@@ -26,12 +26,13 @@ una decisión de negocio.
 | C32 | `src/presence/anam.ts` | `503` con `fallback: text_only` | API key de Anam y política de grabación aceptada |
 | C35 | `src/bridge/host.ts` | `HOST_BRIDGE_NOT_VERIFIED` | Autorización explícita para tocar `/agente` y resolver la divergencia 12/16 |
 | C03 | `src/auth/jwt.ts` | Verificado con claves de fixture | Proyecto Supabase real (issuer, JWKS, claims) |
-| C06 | `src/storage/pg.ts` | **Verificado en PostgreSQL 18.7 local**, incluida durabilidad tras reinicio | `DATABASE_URL` de staging, repetir `npm run db:verify` y `npm run db:persistence` allí, y conectar el API |
+| C06 | `src/storage/pg.ts` | **Verificado localmente**: RLS, durabilidad entre procesos y API durable para casos | `DATABASE_URL` de staging, repetir `db:verify`/`db:persistence`/`db:http` allí, y llevar contactos, propuestas, aprobaciones e intents al mismo patrón |
 
 ## Lo que sí está cerrado sin credenciales
 
-- **C06**: 18/18 garantías SQL y 10/10 de persistencia en un PostgreSQL real y efímero
-  (`npm run db:verify` y `npm run db:persistence`, job `database` de CI).
+- **C06**: 18/18 garantías SQL, 10/10 de persistencia y 13/13 a través del API HTTP con reinicio
+  del proceso, en un PostgreSQL real y efímero (`npm run db:verify`, `db:persistence` y `db:http`,
+  job `database` de CI).
 - **C11/C12/C31**: identidad, importación con staging y renovaciones, con tests propios.
 - **C33**: portal abierto en Chromium real; C33 sigue `NOT_VERIFIED` solo por los flujos que
   exigirían sesión, lector de pantalla y móvil.

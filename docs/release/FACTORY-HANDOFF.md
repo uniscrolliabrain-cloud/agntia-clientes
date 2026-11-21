@@ -11,9 +11,9 @@ Fecha: 2026-11-14 · SHA de referencia auditado: `6a3775d` (main) → este commi
 | Código | 61 archivos en `src/`, TypeScript estricto, sin build |
 | Tests | 12 suites → **114 tests** tras esta campaña |
 | E2E | A–I, 9/9 PASS, artefacto `artifacts/e2e-report.json` |
-| CI | `.github/workflows/ci.yml` (`verify` + `docs`), verde en `main` (`run 43653540108`) |
+| CI | `.github/workflows/ci.yml` (`verify` + `database` + `docs`); esta fase se valida en su PR |
 | Dependencias | `hono`, `zod`, `typescript`, `@types/node`; lockfile reparado y verificado con `npm ci` |
-| Persistencia | migraciones SQL con RLS escritas, **no ejecutadas**; repositorio en memoria |
+| Persistencia | migraciones SQL con RLS **ejecutadas y verificadas**; con `DATABASE_URL` el API sirve casos y auditoría desde PostgreSQL |
 | Proveedores | contratos + `FakeTransport`; **ninguno conectado** |
 | Bridge padre | contrato + `FakeHost`; **cero cambios en `/agente`** |
 
@@ -65,7 +65,7 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 | Integración | Estado |
 |---|---|
 | Supabase Auth (JWT) | Verificado con claves de fixture; **sin proyecto real** |
-| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`) y 10/10 de persistencia entre procesos y reinicio (`npm run db:persistence`); Supabase staging pendiente |
+| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`), 10/10 de persistencia entre procesos y reinicio (`npm run db:persistence`) y 13/13 a través del API con reinicio (`npm run db:http`); Supabase staging pendiente |
 | Chatwoot, Twenty, Frappe, Zammad | Contrato + transporte fake; **no conectado** |
 | Resend | Contrato; **no conectado** |
 | WhatsApp | Documentación revalidada (24 h, 3 categorías); `account_not_configured`; **NOT_VERIFIED** |
@@ -74,8 +74,9 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 
 ## 6. Riesgos y deuda técnica
 
-1. El API sirve desde memoria: `PgStore` está verificado contra PostgreSQL real pero todavía no
-   se selecciona por `DATABASE_URL`, así que producción no persiste.
+1. El API persiste casos y auditoría en PostgreSQL cuando hay `DATABASE_URL`, pero contactos,
+   propuestas, aprobaciones, intents y outbox siguen en memoria del proceso: un reinicio pierde
+   esos agregados, no los casos.
 2. El bus ADTC no tiene transporte; `traceId` se deriva localmente.
 3. La UI del portal se abrió en Chromium (C33) pero no se probó con lector de pantalla ni móvil.
 4. El `SecretStore` de producción no existe (solo memoria).
@@ -110,7 +111,7 @@ identidad/tenants, cambios propuestos (no aplicados) y rollback.
 
 ## 11. Siguiente paso recomendado
 
-Conectar el `PgStore` ya verificado (incluida su durabilidad entre reinicios) al API por
-`DATABASE_URL` y repetir `npm run db:verify` y `npm run db:persistence` contra Supabase
-staging; después, un único proveedor de conversaciones con discovery real
+Llevar contactos, propuestas, aprobaciones e intents al patrón durable que ya usan casos y
+auditoría (`CaseRepository` + `PgStore`), repetir `db:verify`, `db:persistence` y `db:http`
+contra Supabase staging; después, un único proveedor de conversaciones con discovery real
 (C13/C14). Sin credenciales, el resto sigue en [STUBS.md](STUBS.md).
