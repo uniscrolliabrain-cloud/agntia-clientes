@@ -39,6 +39,8 @@ jobs:
       - run: npm ci
       - name: Migraciones y RLS en PostgreSQL real
         run: npm run db:verify
+      - name: Persistencia entre procesos y reinicio de PostgreSQL
+        run: npm run db:persistence
 
   docs:
     runs-on: ubuntu-latest

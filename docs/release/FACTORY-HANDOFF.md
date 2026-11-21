@@ -65,7 +65,7 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 | Integración | Estado |
 |---|---|
 | Supabase Auth (JWT) | Verificado con claves de fixture; **sin proyecto real** |
-| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`); Supabase staging pendiente |
+| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`) y 10/10 de persistencia entre procesos y reinicio (`npm run db:persistence`); Supabase staging pendiente |
 | Chatwoot, Twenty, Frappe, Zammad | Contrato + transporte fake; **no conectado** |
 | Resend | Contrato; **no conectado** |
 | WhatsApp | Documentación revalidada (24 h, 3 categorías); `account_not_configured`; **NOT_VERIFIED** |
@@ -110,6 +110,7 @@ identidad/tenants, cambios propuestos (no aplicados) y rollback.
 
 ## 11. Siguiente paso recomendado
 
-Conectar el `PgStore` ya verificado al API por `DATABASE_URL` y repetir `npm run db:verify`
-contra Supabase staging; después, un único proveedor de conversaciones con discovery real
+Conectar el `PgStore` ya verificado (incluida su durabilidad entre reinicios) al API por
+`DATABASE_URL` y repetir `npm run db:verify` y `npm run db:persistence` contra Supabase
+staging; después, un único proveedor de conversaciones con discovery real
 (C13/C14). Sin credenciales, el resto sigue en [STUBS.md](STUBS.md).

@@ -46,8 +46,11 @@ Se revisaron los diez documentos de preparación y se corrigió lo que faltaba (
 
 1. **Postgres verificado, no en Supabase**: `npm run db:verify` levanta PostgreSQL 18.7 embebido
    y pasa 18/18 garantías (aislamiento A/B, fail-closed, FK compuesta, unicidad scoped,
-   `audit_log` append-only) con un rol no-owner. El API sigue sirviendo desde el store en memoria:
-   falta elegir `PgStore` por `DATABASE_URL` y repetir la prueba en Supabase staging.
+   `audit_log` append-only) con un rol no-owner. `npm run db:persistence` añade 10/10 garantías
+   de durabilidad: lo escrito por un proceso sobrevive a su fin y a un reinicio del servidor, y
+   aislamiento, fail-closed e idempotencia siguen valiendo después. El API sigue sirviendo desde
+   el store en memoria: falta elegir `PgStore` por `DATABASE_URL` y repetir la prueba en Supabase
+   staging.
 2. **Sin proveedores reales**: Chatwoot, Twenty, Frappe, Zammad, Resend y WhatsApp tienen
    contrato y transporte fake. Cero credenciales, cero llamadas, cero receipts reales.
 3. **WhatsApp sin cuenta**: la documentación de Meta se revalidó el 2026-11-20 (ventana de 24 h,

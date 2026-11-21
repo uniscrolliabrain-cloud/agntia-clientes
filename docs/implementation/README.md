@@ -61,11 +61,12 @@ npm install        # dependencias del lockfile
 npm run typecheck  # tsc --noEmit
 npm test           # 114 tests (node:test)
 npm run db:verify  # migraciones + RLS en PostgreSQL real (efímero, sin Docker)
+npm run db:persistence  # escritura, reinicio de PostgreSQL y lectura en otro proceso
 npm run eval       # E2E A–I → artifacts/e2e-report.json
 npm start          # API en :3000 (falla cerrada sin Supabase)
 ```
 
-Resultados de esta ejecución: typecheck OK · 114/114 tests OK · 9/9 escenarios OK · 18/18 garantías SQL.
+Resultados de esta ejecución: typecheck OK · 114/114 tests OK · 9/9 escenarios OK · 18/18 garantías SQL · 10/10 garantías de persistencia.
 El detalle por fase está en [`../campaigns/reports/`](../campaigns/reports/README.md).
 
 ## Mapa de artefactos prometidos por las campañas
