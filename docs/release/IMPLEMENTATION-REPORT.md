@@ -48,9 +48,12 @@ Se revisaron los diez documentos de preparación y se corrigió lo que faltaba (
    y pasa 18/18 garantías (aislamiento A/B, fail-closed, FK compuesta, unicidad scoped,
    `audit_log` append-only) con un rol no-owner. `npm run db:persistence` añade 10/10 garantías
    de durabilidad: lo escrito por un proceso sobrevive a su fin y a un reinicio del servidor, y
-   aislamiento, fail-closed e idempotencia siguen valiendo después. El API sigue sirviendo desde
-   el store en memoria: falta elegir `PgStore` por `DATABASE_URL` y repetir la prueba en Supabase
-   staging.
+   aislamiento, fail-closed e idempotencia siguen valiendo después. `npm run db:http` cierra el
+   tramo que faltaba: con `DATABASE_URL` el API siembra en PostgreSQL, aplica una transición FSM
+   por HTTP y, tras SIGTERM y arranque de otro proceso, devuelve el mismo estado y versión
+   (13/13, auditoría durable, CAS con 409, aislamiento A/B). Lo que sigue en memoria del proceso
+   son contactos, propuestas, aprobaciones, intents y outbox; falta llevarlos al mismo patrón y
+   repetir la prueba en Supabase staging.
 2. **Sin proveedores reales**: Chatwoot, Twenty, Frappe, Zammad, Resend y WhatsApp tienen
    contrato y transporte fake. Cero credenciales, cero llamadas, cero receipts reales.
 3. **WhatsApp sin cuenta**: la documentación de Meta se revalidó el 2026-11-20 (ventana de 24 h,

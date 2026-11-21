@@ -1,4 +1,7 @@
 import pg from "pg";
+import type { Case as CaseDto } from "../contracts/dto.ts";
+import type { AuditEntry } from "./memory.ts";
+import type { CaseRepository, SeedContactRef } from "./cases.ts";
 
 /**
  * CLI-C06 · Store sobre PostgreSQL real.
@@ -51,6 +54,102 @@ export class TenantTx {
       [id],
     );
     return out.rows[0] ?? null;
+  }
+
+  /**
+   * Contacto de referencia para la semilla de fixtures. No sobrescribe: un
+   * contacto real ya sincronizado conserva sus datos.
+   */
+  async ensureContact(input: SeedContactRef): Promise<void> {
+    await this.#client.query(
+      `insert into contacts (tenant_id, id, display_name) values ($1,$2,$3)
+       on conflict (tenant_id, id) do nothing`,
+      [this.tenantId, input.id, input.displayName],
+    );
+  }
+
+  /**
+   * Caso completo tal y como lo escribió el API. `document` es la fuente de
+   * verdad del DTO; las columnas proyectadas sirven para índices y para el CAS.
+   * `on conflict do nothing` mantiene la semilla idempotente sin pisar estado.
+   */
+  async insertCaseDocument(caseDto: CaseDto): Promise<void> {
+    await this.#client.query(
+      `insert into cases (tenant_id, id, organization_id, contact_id, category, priority,
+         state, assigned_to, assigned_by, version, sla_policy_id, sla_policy_version,
+         resolution_contract, due_at, created_at, updated_at, document)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       on conflict (tenant_id, id) do nothing`,
+      [
+        this.tenantId,
+        caseDto.id,
+        caseDto.organizationId,
+        caseDto.contactId,
+        caseDto.category,
+        caseDto.priority,
+        caseDto.state,
+        caseDto.assignedTo,
+        caseDto.assignedBy,
+        caseDto.version,
+        caseDto.slaPolicyId,
+        caseDto.slaPolicyVersion,
+        JSON.stringify(caseDto.resolutionContract),
+        caseDto.dueAt,
+        caseDto.createdAt,
+        caseDto.updatedAt,
+        JSON.stringify(caseDto),
+      ],
+    );
+  }
+
+  async getCaseDocument(id: string): Promise<CaseDto | null> {
+    const out = await this.#client.query<{ document: CaseDto }>(
+      `select document from cases where id = $1`,
+      [id],
+    );
+    return out.rows[0]?.document ?? null;
+  }
+
+  async listCaseDocuments(limit = 200): Promise<CaseDto[]> {
+    const out = await this.#client.query<{ document: CaseDto }>(
+      `select document from cases order by created_at desc, id limit $1`,
+      [limit],
+    );
+    return out.rows.map((row) => row.document);
+  }
+
+  /**
+   * CAS en SQL: el `where version = $2` es la carrera que la memoria no puede
+   * perder (proceso único) y que dos instancias del API sí. 0 filas = conflicto.
+   */
+  async replaceCaseDocument(caseDto: CaseDto, expectedVersion: number): Promise<boolean> {
+    const out = await this.#client.query<{ id: string }>(
+      `update cases set organization_id = $3, contact_id = $4, category = $5, priority = $6,
+         state = $7, assigned_to = $8, assigned_by = $9, version = $10,
+         sla_policy_id = $11, sla_policy_version = $12, resolution_contract = $13,
+         due_at = $14, updated_at = $15, document = $16
+       where id = $1 and version = $2
+       returning id`,
+      [
+        caseDto.id,
+        expectedVersion,
+        caseDto.organizationId,
+        caseDto.contactId,
+        caseDto.category,
+        caseDto.priority,
+        caseDto.state,
+        caseDto.assignedTo,
+        caseDto.assignedBy,
+        caseDto.version,
+        caseDto.slaPolicyId,
+        caseDto.slaPolicyVersion,
+        JSON.stringify(caseDto.resolutionContract),
+        caseDto.dueAt,
+        caseDto.updatedAt,
+        JSON.stringify(caseDto),
+      ],
+    );
+    return out.rows.length === 1;
   }
 
   async insertCase(input: {
@@ -175,6 +274,15 @@ export class PgStore {
     this.#pool = pool;
   }
 
+  /** Falla si la base de datos no responde: se usa antes de servir tráfico. */
+  async ping(): Promise<void> {
+    await this.#pool.query("select 1");
+  }
+
+  async close(): Promise<void> {
+    await this.#pool.end();
+  }
+
   async withTenant<T>(tenantId: string, fn: (tx: TenantTx) => Promise<T>): Promise<T> {
     if (!tenantId) throw new Error("tenant_required");
     const client = await this.#pool.connect();
@@ -190,5 +298,63 @@ export class PgStore {
     } finally {
       client.release();
     }
+  }
+}
+
+/**
+ * Adaptador de `CaseRepository` sobre PostgreSQL. Cada operación abre su propia
+ * transacción con `app.tenant_id`, así que ninguna conexión del pool arrastra el
+ * tenant de la petición anterior.
+ */
+export class PgCaseRepository implements CaseRepository {
+  readonly kind = "postgres" as const;
+  readonly #store: PgStore;
+
+  constructor(store: PgStore) {
+    this.#store = store;
+  }
+
+  async list(tenantId: string): Promise<CaseDto[]> {
+    return this.#store.withTenant(tenantId, (tx) => tx.listCaseDocuments());
+  }
+
+  async get(tenantId: string, id: string): Promise<CaseDto | null> {
+    return this.#store.withTenant(tenantId, (tx) => tx.getCaseDocument(id));
+  }
+
+  async save(tenantId: string, next: CaseDto, expectedVersion: number): Promise<boolean> {
+    return this.#store.withTenant(tenantId, (tx) => tx.replaceCaseDocument(next, expectedVersion));
+  }
+
+  async seed(
+    tenantId: string,
+    input: { contacts: readonly SeedContactRef[]; cases: readonly CaseDto[] },
+  ): Promise<void> {
+    await this.#store.withTenant(tenantId, async (tx) => {
+      for (const contact of input.contacts) await tx.ensureContact(contact);
+      for (const caseDto of input.cases) await tx.insertCaseDocument(caseDto);
+    });
+  }
+
+  async appendAudit(entry: Omit<AuditEntry, "occurredAt">): Promise<void> {
+    await this.#store.withTenant(entry.tenantId, (tx) =>
+      tx.appendAudit({
+        id: entry.id,
+        actorId: entry.actorId,
+        capability: entry.capability,
+        operationId: entry.operationId,
+        correlationId: entry.correlationId,
+        outcome: entry.outcome,
+        payloadRef: entry.payloadRef,
+      }),
+    );
+  }
+
+  async ping(): Promise<void> {
+    await this.#store.ping();
+  }
+
+  async close(): Promise<void> {
+    await this.#store.close();
   }
 }

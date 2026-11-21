@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppContext } from "./context.ts";
 import { assertTenant, assertResourceAccess, requireCapability, resolveActor, type Actor } from "../auth/principal.ts";
-import { ServiceError, forbidden, invalid, notFound, toServiceError } from "../lib/errors.ts";
+import { ServiceError, conflict, forbidden, invalid, notFound, toServiceError } from "../lib/errors.ts";
 import { CASE_STATES, transition, type CaseEvent } from "../domain/cases.ts";
 import { proposeReply } from "../domain/proposals.ts";
 import { buildApproval } from "../domain/approvals.ts";
@@ -103,6 +103,7 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       providers: ctx.connections ? "not_configured" : "absent",
       anam: ctx.anam.snapshot().configured ? "configured" : "not_configured",
       database: ctx.config.databaseUrl ? "configured" : "in_memory",
+      case_store: ctx.caseRepo.kind,
     }),
   );
 
@@ -146,10 +147,10 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     });
   });
 
-  app.get("/v1/clientes/cases", (c) => {
+  app.get("/v1/clientes/cases", async (c) => {
     const actor = c.get("actor");
     requireCapability(actor, "cases.read");
-    const rows = ctx.store.cases.list(actor.tenantId).map((row) => ({
+    const rows = (await ctx.caseRepo.list(actor.tenantId)).map((row) => ({
       id: row.id,
       state: row.state,
       priority: row.priority,
@@ -161,10 +162,10 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     return c.json({ items: rows, denominator: rows.length });
   });
 
-  app.get("/v1/clientes/cases/:id", (c) => {
+  app.get("/v1/clientes/cases/:id", async (c) => {
     const actor = c.get("actor");
     requireCapability(actor, "cases.read");
-    const row = ctx.store.cases.get(actor.tenantId, c.req.param("id"));
+    const row = await ctx.caseRepo.get(actor.tenantId, c.req.param("id"));
     if (!row) throw notFound();
     assertTenant(actor, row.tenantId);
     assertResourceAccess(actor, row.id);
@@ -184,7 +185,7 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     const actor = c.get("actor");
     requireCapability(actor, "cases.transition");
     const body = TransitionBody.parse(await c.req.json());
-    const row = ctx.store.cases.get(actor.tenantId, c.req.param("id"));
+    const row = await ctx.caseRepo.get(actor.tenantId, c.req.param("id"));
     if (!row) throw notFound();
     assertResourceAccess(actor, row.id);
     const result = transition(row, body.event as CaseEvent, {
@@ -195,8 +196,11 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       ...(body.evidence ? { evidence: body.evidence } : {}),
       ...(body.silentCloseAgreed !== undefined ? { silentCloseAgreed: body.silentCloseAgreed } : {}),
     });
-    ctx.store.cases.replace(actor.tenantId, result.case.id, result.case);
-    ctx.store.appendAudit({
+    // CAS: si otra instancia escribió entre la lectura y este punto, no se
+    // sobrescribe; el llamador recibe 409 y vuelve a leer.
+    const applied = await ctx.caseRepo.save(actor.tenantId, result.case, row.version);
+    if (!applied) throw conflict("expectedVersion obsoleto: el caso cambió");
+    await ctx.caseRepo.appendAudit({
       id: `audit_${crypto.randomUUID()}`,
       tenantId: actor.tenantId,
       actorId: actor.id,
@@ -215,7 +219,7 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     const actor = c.get("actor");
     requireCapability(actor, "reply.propose");
     const body = ProposalBody.parse(await c.req.json());
-    const row = ctx.store.cases.get(actor.tenantId, c.req.param("id"));
+    const row = await ctx.caseRepo.get(actor.tenantId, c.req.param("id"));
     if (!row) throw notFound();
     assertResourceAccess(actor, row.id);
     const contact = ctx.store.contacts.get(actor.tenantId, row.contactId);
@@ -261,7 +265,7 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     const body = ApproveBody.parse(await c.req.json());
     const proposal = ctx.store.proposals.get(actor.tenantId, body.proposalId);
     if (!proposal) throw notFound();
-    const caseDto = ctx.store.cases.get(actor.tenantId, body.caseId);
+    const caseDto = await ctx.caseRepo.get(actor.tenantId, body.caseId);
     if (!caseDto) throw notFound();
     const now = ctx.store.now();
     const approval = buildApproval(
@@ -391,10 +395,10 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     }
   });
 
-  app.get("/v1/clientes/reports", (c) => {
+  app.get("/v1/clientes/reports", async (c) => {
     const actor = c.get("actor");
     requireCapability(actor, "reports.read");
-    const rows = ctx.store.cases.list(actor.tenantId);
+    const rows = await ctx.caseRepo.list(actor.tenantId);
     const resolved = rows.filter((r) => r.state === "resolved").length;
     const snapshot = buildReport({
       id: `report_${actor.tenantId}`,

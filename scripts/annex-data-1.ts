@@ -108,6 +108,9 @@ export const PHASES_1: PhaseAnnex[] = [
       "src/storage/pg.ts (PgStore: `set local app.tenant_id` por transacción, sin tenant en los datos)",
       "scripts/db-verify.ts + `npm run db:verify`: PostgreSQL efímero sin Docker ni root",
       "scripts/db-persistence.ts + `npm run db:persistence`: escritura en un proceso, reinicio de PostgreSQL y lectura en otro",
+      "src/storage/cases.ts (CaseRepository async: adaptador en memoria y adaptador PostgreSQL)",
+      "src/storage/migrations/0004_case_document.sql: DTO completo del caso en `document`, columnas proyectadas para índices y CAS",
+      "scripts/db-http-durability.ts + `npm run db:http`: el API real contra PostgreSQL, con reinicio del proceso en medio",
     ],
     verified: [
       "test/tenancy-knowledge.test.ts: scoping, unicidad, CAS en memoria",
@@ -116,13 +119,14 @@ export const PHASES_1: PhaseAnnex[] = [
       "Unicidad scoped de `operation_key` y de webhooks, `audit_log` sin UPDATE y sin privilegio DELETE",
       "PgStore: el tenant no se arrastra entre transacciones de una conexión reutilizada; claim idempotente",
       "`npm run db:persistence`: 10/10 — caso, contacto, auditoría e idempotencia sobreviven al fin del proceso y a un reinicio del servidor; aislamiento y fail-closed intactos",
+      "`npm run db:http`: 13/13 — con `DATABASE_URL` el API siembra en PostgreSQL, aplica una transición FSM por HTTP y, tras SIGTERM y arranque de otro proceso, devuelve el mismo estado y versión; auditoría durable, CAS con 409 e aislamiento A/B intactos",
     ],
     deviations: [
       "PostgreSQL 18.7 embebido (binarios npm), no la versión de Supabase: las políticas son estándar, falta confirmar en staging.",
-      "El API sigue usando el store en memoria; `PgStore` está verificado pero aún no seleccionado por `DATABASE_URL`.",
+      "El API persiste casos y auditoría en PostgreSQL cuando hay `DATABASE_URL`; contactos, propuestas, aprobaciones, intents y outbox siguen en memoria del proceso, así que un reinicio pierde todo lo que no sea caso o auditoría.",
     ],
     pending: [
-      "Elegir store por entorno (`DATABASE_URL` → PgStore) y probar contra Supabase staging",
+      "Llevar contactos, propuestas, aprobaciones e intents al mismo patrón durable y probar contra Supabase staging",
       "Rol de login real con `grant app_api` y rotación de credenciales vía Doppler",
     ],
   },

@@ -41,6 +41,8 @@ jobs:
         run: npm run db:verify
       - name: Persistencia entre procesos y reinicio de PostgreSQL
         run: npm run db:persistence
+      - name: API sirviendo casos desde PostgreSQL entre reinicios
+        run: npm run db:http
 
   docs:
     runs-on: ubuntu-latest

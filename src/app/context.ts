@@ -1,5 +1,7 @@
 import { loadConfig, type AppConfig } from "../config.ts";
+import type { Case as CaseDto } from "../contracts/dto.ts";
 import { MemoryStore } from "../storage/memory.ts";
+import { MemoryCaseRepository, type CaseRepository, type SeedContactRef } from "../storage/cases.ts";
 import { JwtVerifier, type JwksSource } from "../auth/jwt.ts";
 import type { ContactPortalGrant, Membership, PrincipalDirectory } from "../auth/principal.ts";
 import { ROLE_CAPABILITIES } from "../auth/principal.ts";
@@ -47,6 +49,8 @@ export interface AppContext {
   config: AppConfig;
   clock: Clock;
   store: MemoryStore;
+  /** Casos: memoria en test/desarrollo, PostgreSQL cuando hay DATABASE_URL. */
+  caseRepo: CaseRepository;
   directory: PrincipalDirectory;
   jwt: JwtVerifier;
   twins: TwinRegistry;
@@ -138,6 +142,8 @@ export interface ContextOptions {
   gateway?: ModelGateway;
   jwks?: JwksSource;
   transport?: HttpTransport;
+  /** Sustituye el almacén de casos (p. ej. PostgreSQL). */
+  caseRepository?: CaseRepository;
   /** Semilla de fixtures sintéticas: activa por defecto fuera de producción. */
   seed?: boolean;
 }
@@ -146,6 +152,7 @@ export function buildContext(options: ContextOptions = {}): AppContext {
   const config = options.config ?? loadConfig();
   const clock = options.clock ?? fixedClock(FIXTURE_NOW);
   const store = new MemoryStore({ clock });
+  const caseRepo = options.caseRepository ?? new MemoryCaseRepository(store);
   const directory = new SeededDirectory(MEMBERSHIP_SEED, CONTACT_GRANTS);
   const secrets = new InMemorySecretStore();
   const transport = options.transport ?? new FakeTransport();
@@ -191,6 +198,7 @@ export function buildContext(options: ContextOptions = {}): AppContext {
     config,
     clock,
     store,
+    caseRepo,
     directory,
     jwt,
     twins: twinsRegistry,
@@ -315,6 +323,40 @@ export function seedContext(ctx: AppContext): void {
     });
   }
   ctx.store.assertTenantIntegrity();
+}
+
+/**
+ * Semilla de fixtures en un repositorio durable.
+ *
+ * Solo escribe si el tenant A está vacío: reiniciar el API no puede resetear
+ * versiones ni estados que ya cambiaron. En producción no se siembra nada.
+ */
+export async function seedDurableCases(ctx: AppContext): Promise<{ seeded: boolean; cases: number }> {
+  if (ctx.caseRepo.kind === "memory" || ctx.config.env === "production") {
+    return { seeded: false, cases: 0 };
+  }
+  const existing = await ctx.caseRepo.list(TENANT_A);
+  if (existing.length > 0) return { seeded: false, cases: existing.length };
+
+  const contactRefs = new Map<string, SeedContactRef[]>();
+  for (const seeded of contacts()) {
+    const refs = contactRefs.get(seeded.contact.tenantId) ?? [];
+    refs.push({ id: seeded.contact.id, displayName: seeded.contact.displayName });
+    contactRefs.set(seeded.contact.tenantId, refs);
+  }
+  const casesByTenant = new Map<string, CaseDto[]>();
+  for (const caseDto of cases()) {
+    const rows = casesByTenant.get(caseDto.tenantId) ?? [];
+    rows.push(caseDto);
+    casesByTenant.set(caseDto.tenantId, rows);
+  }
+
+  let written = 0;
+  for (const [tenantId, rows] of casesByTenant) {
+    await ctx.caseRepo.seed(tenantId, { contacts: contactRefs.get(tenantId) ?? [], cases: rows });
+    written += rows.length;
+  }
+  return { seeded: true, cases: written };
 }
 
 /** Helper de tests: contexto limpio con reloj fijo. */
