@@ -24,6 +24,8 @@ export interface AppConfig {
     anam: boolean;
   };
   anam: { baseUrl: string; apiKeyConfigured: boolean };
+  /** Padre `/agente`: solo endpoint y presencia del token, nunca el valor. */
+  agente: { baseUrl: string | null; serviceTokenConfigured: boolean };
   databaseUrl: string | null;
   budget: { liteEur: number };
 }
@@ -52,6 +54,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     anam: {
       baseUrl: env.ANAM_BASE_URL ?? "https://api.anam.ai",
       apiKeyConfigured: Boolean(env.ANAM_API_KEY),
+    },
+    agente: {
+      baseUrl: env.AGENTE_BASE_URL ?? null,
+      serviceTokenConfigured: Boolean(env.AGENTE_SERVICE_TOKEN),
     },
     databaseUrl: env.DATABASE_URL || null,
     budget: { liteEur: Number(env.BUDGET_LITE_EUR ?? 30) },

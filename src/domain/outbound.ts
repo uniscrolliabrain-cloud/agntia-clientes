@@ -35,6 +35,60 @@ export interface CreateIntentInput {
   proposalRef: string;
 }
 
+/** Clave de idempotencia: una sola definición para el ledger y los repositorios. */
+export function operationKeyFor(input: {
+  tenantId: string;
+  channel: string;
+  conversationRef: string;
+  proposalRef: string;
+}): string {
+  return operationKey([input.tenantId, input.channel, input.conversationRef, input.proposalRef]);
+}
+
+/** Construye el intent propuesto sin estado: útil para repositorios durables. */
+export function buildIntent(input: CreateIntentInput, now: string): OutboundIntent {
+  return {
+    id: opaqueId("intent"),
+    tenantId: input.tenantId,
+    operationKey: operationKeyFor(input),
+    conversationRef: input.conversationRef,
+    contactRef: input.contactRef,
+    channel: input.channel,
+    payloadHash: hashCanonical(input.payload),
+    proposalRef: input.proposalRef,
+    approvalRef: null,
+    state: "proposed",
+    leaseFence: 0,
+    remoteRefs: [],
+    reconciliationRef: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+/**
+ * FSM pura del intent: mismas reglas que el ledger, sin almacenamiento.
+ * Así la ruta HTTP durable y el ledger en memoria no divergen.
+ */
+export function transitionIntent(
+  intent: OutboundIntent,
+  next: OutboundIntent["state"],
+  patch: Partial<Pick<OutboundIntent, "remoteRefs" | "reconciliationRef" | "leaseFence" | "approvalRef">>,
+  now: string,
+): OutboundIntent {
+  const allowed = ALLOWED[intent.state] ?? [];
+  if (!allowed.includes(next)) {
+    throw conflict(`Transición ${intent.state} → ${next} no permitida`);
+  }
+  if (next === "delivered" && (patch.remoteRefs ?? intent.remoteRefs).length === 0) {
+    throw invalid("delivered exige referencia verificable del canal");
+  }
+  if (next === "queued" && !(patch.approvalRef ?? intent.approvalRef)) {
+    throw forbidden("No se encola sin aprobación vinculada");
+  }
+  return { ...intent, ...patch, state: next, updatedAt: now };
+}
+
 export class OutboundLedger {
   readonly #clock: Clock;
   readonly #byOperation = new Map<string, OutboundIntent>();
@@ -44,35 +98,16 @@ export class OutboundLedger {
   }
 
   create(input: CreateIntentInput): OutboundIntent {
-    const key = operationKey([input.tenantId, input.channel, input.conversationRef, input.proposalRef]);
-    const payloadHash = hashCanonical(input.payload);
-    const existing = this.#byOperation.get(`${input.tenantId}:${key}`);
+    const candidate = buildIntent(input, this.#clock.now().toISOString());
+    const existing = this.#byOperation.get(`${input.tenantId}:${candidate.operationKey}`);
     if (existing) {
-      if (existing.payloadHash !== payloadHash) {
+      if (existing.payloadHash !== candidate.payloadHash) {
         throw conflict("Idempotency-Key reutilizada con otro contenido");
       }
       return existing;
     }
-    const now = this.#clock.now().toISOString();
-    const intent: OutboundIntent = {
-      id: opaqueId("intent"),
-      tenantId: input.tenantId,
-      operationKey: key,
-      conversationRef: input.conversationRef,
-      contactRef: input.contactRef,
-      channel: input.channel,
-      payloadHash,
-      proposalRef: input.proposalRef,
-      approvalRef: null,
-      state: "proposed",
-      leaseFence: 0,
-      remoteRefs: [],
-      reconciliationRef: null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.#byOperation.set(`${input.tenantId}:${key}`, intent);
-    return intent;
+    this.#byOperation.set(`${input.tenantId}:${candidate.operationKey}`, candidate);
+    return candidate;
   }
 
   get(tenantId: string, id: string): OutboundIntent {
@@ -99,17 +134,9 @@ export class OutboundLedger {
     patch: Partial<Pick<OutboundIntent, "remoteRefs" | "reconciliationRef" | "leaseFence">> = {},
   ): OutboundIntent {
     const intent = this.get(tenantId, id);
-    const allowed = ALLOWED[intent.state] ?? [];
-    if (!allowed.includes(next)) {
-      throw conflict(`Transición ${intent.state} → ${next} no permitida`);
-    }
-    if (next === "delivered" && (patch.remoteRefs ?? intent.remoteRefs).length === 0) {
-      throw invalid("delivered exige referencia verificable del canal");
-    }
-    if (next === "queued" && !intent.approvalRef) {
-      throw forbidden("No se encola sin aprobación vinculada");
-    }
-    return this.#move(intent, next, patch);
+    const updated = transitionIntent(intent, next, patch, this.#clock.now().toISOString());
+    this.#byOperation.set(`${intent.tenantId}:${intent.operationKey}`, updated);
+    return updated;
   }
 
   /** Aceptado por el proveedor pero sin respuesta: incertidumbre explícita. */
@@ -123,12 +150,7 @@ export class OutboundLedger {
     next: OutboundIntent["state"],
     patch: Partial<Pick<OutboundIntent, "remoteRefs" | "reconciliationRef" | "leaseFence" | "approvalRef">>,
   ): OutboundIntent {
-    const updated: OutboundIntent = {
-      ...intent,
-      ...patch,
-      state: next,
-      updatedAt: this.#clock.now().toISOString(),
-    };
+    const updated = transitionIntent(intent, next, patch, this.#clock.now().toISOString());
     this.#byOperation.set(`${intent.tenantId}:${intent.operationKey}`, updated);
     return updated;
   }

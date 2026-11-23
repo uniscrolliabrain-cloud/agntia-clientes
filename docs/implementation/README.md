@@ -6,8 +6,9 @@ un esqueleto de código real. **No sustituye** la entrega documental previa: la 
 ## Estado en una línea
 
 `SKELETON_IMPLEMENTED` — código TypeScript ejecutable, 114 tests locales en verde, 9 escenarios
-E2E A–I en verde, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y bridge del padre
-`HOST_BRIDGE_NOT_VERIFIED`.
+E2E A–I en verde, dos vertical slices durables (atención y onboarding) con reinicios, paquete
+instalable verificado en un host limpio, proveedores externos **NOT_CONFIGURED / NOT_VERIFIED** y
+bridge del padre `HOST_BRIDGE_NOT_VERIFIED`.
 
 Reconciliado con los diez documentos de `docs/factory-prep-v1-20261113`: ver
 [FACTORY-RECONCILIATION.md](FACTORY-RECONCILIATION.md). Los estados se traducen al vocabulario
@@ -32,7 +33,7 @@ del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFI
 | Outbound + worker | `src/domain/outbound.ts`, `src/jobs/` | Replay, `delivered` con evidencia, `outcome_unknown`, reconciliación |
 | Inbox y adjuntos | `src/inbox/` | Firma HMAC, replay, skew, MIME real, CSV, cuarentena |
 | Adaptadores | `src/adapters/`, `src/channels/` | Contratos contra transporte fake; ninguna API real llamada |
-| Storage | `src/storage/` | Repositorio tenant-scoped + migraciones SQL con RLS (no ejecutadas) |
+| Storage | `src/storage/` | Repositorio tenant-scoped, RLS ejecutada y agregados durables (casos, propuestas, aprobaciones, intents, planes) |
 | API + portal | `src/app/` | Rutas nominadas, 401/403/404/409, HTML accesible |
 | SDK + proxy + tools | `src/sdk/`, `src/tools/` | Allowlist exacta, tools sin approve/send/refund |
 | Bridge del padre | `src/bridge/` | Proyección conservadora a `SystemEvent` v1, inbox dedup |
@@ -45,14 +46,17 @@ del factory (`src/contracts/certainty.ts`): PASS → `TEST_VERIFIED`, NOT_VERIFI
 ## Qué NO está implementado (y se declara)
 
 - **Postgres real / RLS ejecutada**: verificada en PostgreSQL 18.7 efímero (`db:verify`,
-  `db:persistence`) y a través del API (`db:http`). Con `DATABASE_URL`, casos y auditoría se
-  sirven desde PostgreSQL; contactos, propuestas, aprobaciones, intents y outbox siguen en
-  memoria del proceso. Supabase staging no está provisionado.
+  `db:persistence`), a través del API (`db:http`) y con dos vertical slices de punta a punta
+  (`slices`). Con `DATABASE_URL` se sirven desde PostgreSQL casos, auditoría, propuestas,
+  aprobaciones, intents y planes de onboarding; contactos CRUD, outbox y jobs siguen en memoria
+  del proceso. Supabase staging no está provisionado.
 - **Proveedores reales** (Chatwoot, Twenty, Frappe, Zammad, Resend, Meta WhatsApp): adaptadores
   con contrato y transporte fake. Ninguna credencial, ninguna llamada, ningún receipt real.
 - **Anam real**: emisión local de token efímero de desarrollo; sin SDK ni sesión.
 - **Supabase real**: JWT verificado con claves de fixture; no hay proyecto provisionado.
-- **Bridge del padre**: contratos y host fake; **cero** cambios en `/agente`.
+- **Bridge del padre**: contratos, host fake y cliente HTTP real (`HttpHost`) probado contra el
+  contrato local (11/11); **cero** cambios en `/agente`. La instalación real sigue pendiente de su
+  checkout y su token: ver [INSTALACION-AGENTE.md](../release/INSTALACION-AGENTE.md).
 - **UI de producto**: marco HTML accesible de portal, sin cliente React ni estado real.
 - **Backups, restore, DLQ persistente, CI ejecutada en GitHub**: diseñados, no ejecutados.
 
@@ -65,12 +69,25 @@ npm test           # 114 tests (node:test)
 npm run db:verify  # migraciones + RLS en PostgreSQL real (efímero, sin Docker)
 npm run db:persistence  # escritura, reinicio de PostgreSQL y lectura en otro proceso
 npm run db:http    # API contra PostgreSQL: transición, SIGTERM, reinicio y relectura
+npm run slices     # Dos vertical slices durables (atención y onboarding) con dos reinicios
+npm run install:check   # npm pack + instalación en host limpio + arranque desde node_modules
+npm run bridge:contract # HostPort/HttpHost contra un stand-in local (no es /agente)
 npm run eval       # E2E A–I → artifacts/e2e-report.json
 npm start          # API en :3000 (falla cerrada sin Supabase)
 ```
 
-Resultados de esta ejecución: typecheck OK · 114/114 tests OK · 9/9 escenarios OK · 18/18 garantías SQL · 10/10 de persistencia · 13/13 a través del API HTTP con reinicio.
+Resultados de esta ejecución: typecheck OK · 114/114 tests OK · 9/9 escenarios OK · 18/18 garantías SQL · 10/10 de persistencia · 13/13 a través del API HTTP con reinicio · 20/20 vertical slices · 10/10 instalación · 11/11 contrato del puente.
 El detalle por fase está en [`../campaigns/reports/`](../campaigns/reports/README.md).
+
+## Vertical slices activadas
+
+| Slice | Recorrido | Evidencia |
+|---|---|---|
+| VS1 · Atención | caso → propuesta con cita → preview → aprobación humana → intent idempotente → despacho **sandbox** → receipt → `delivered` → reporte | `npm run slices` |
+| VS2 · Onboarding | plan versionado → documento con evidencia → aceptación humana → hito `done` | `npm run slices` |
+
+Ambas sobreviven a dos reinicios del API y el tenant B no ve ninguna fila de A. El despacho es
+`sandbox_only`: no hay proveedor detrás y la respuesta lo declara.
 
 ## Mapa de artefactos prometidos por las campañas
 

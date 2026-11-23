@@ -4,8 +4,21 @@ import { buildContext, seedDurableCases } from "./app/context.ts";
 import { createApp } from "./app/http.ts";
 import { loadConfig } from "./config.ts";
 import { systemClock } from "./lib/time.ts";
-import { PgCaseRepository, PgStore } from "./storage/pg.ts";
+import {
+  PgApprovalRepository,
+  PgCaseRepository,
+  PgIntentRepository,
+  PgPlanRepository,
+  PgProposalRepository,
+  PgStore,
+} from "./storage/pg.ts";
 import type { CaseRepository } from "./storage/cases.ts";
+import type {
+  ApprovalRepository,
+  IntentRepository,
+  PlanRepository,
+  ProposalRepository,
+} from "./storage/aggregates.ts";
 
 /**
  * Arranque del esqueleto (CLI-C41).
@@ -19,13 +32,29 @@ import type { CaseRepository } from "./storage/cases.ts";
  */
 const config = loadConfig();
 
-async function buildDurableCases(): Promise<{ repo: PgCaseRepository; pool: pg.Pool } | null> {
+interface DurableWiring {
+  caseRepo: CaseRepository;
+  proposals: ProposalRepository;
+  approvals: ApprovalRepository;
+  intentRepo: IntentRepository;
+  plans: PlanRepository;
+  close: () => Promise<void>;
+}
+
+async function buildDurable(): Promise<DurableWiring | null> {
   if (!config.databaseUrl) return null;
   const pool = new pg.Pool({ connectionString: config.databaseUrl, max: 10 });
-  const repo = new PgCaseRepository(new PgStore(pool));
+  const store = new PgStore(pool);
   try {
-    await repo.ping();
-    return { repo, pool };
+    await store.ping();
+    return {
+      caseRepo: new PgCaseRepository(store),
+      proposals: new PgProposalRepository(store),
+      approvals: new PgApprovalRepository(store),
+      intentRepo: new PgIntentRepository(store),
+      plans: new PgPlanRepository(store),
+      close: () => store.close(),
+    };
   } catch {
     // Sin mensaje del driver: puede contener host, usuario o credenciales.
     console.error("DATABASE_URL configurada pero la base de datos no responde: arranque abortado");
@@ -35,22 +64,30 @@ async function buildDurableCases(): Promise<{ repo: PgCaseRepository; pool: pg.P
 }
 
 async function main(): Promise<void> {
-  const durable = await buildDurableCases();
+  const durable = await buildDurable();
   if (config.databaseUrl && !durable) {
     process.exitCode = 1;
     return;
   }
 
-  const caseRepo: CaseRepository | undefined = durable?.repo;
+  const caseRepo: CaseRepository | undefined = durable?.caseRepo;
   // Reloj real: una instancia viva no puede validar JWT (iat/exp), SLA ni
   // auditoría contra el instante congelado de las fixtures.
   const ctx = buildContext({
     config,
     clock: systemClock,
-    ...(caseRepo ? { caseRepository: caseRepo } : {}),
+    ...(durable
+      ? {
+          caseRepository: durable.caseRepo,
+          proposalRepository: durable.proposals,
+          approvalRepository: durable.approvals,
+          intentRepository: durable.intentRepo,
+          planRepository: durable.plans,
+        }
+      : {}),
   });
 
-  if (caseRepo) {
+  if (caseRepo && durable) {
     try {
       const seeded = await seedDurableCases(ctx);
       console.log(
@@ -60,7 +97,7 @@ async function main(): Promise<void> {
       );
     } catch {
       console.error("no se pudo sembrar el repositorio durable: arranque abortado");
-      await caseRepo.close().catch(() => undefined);
+      await durable.close().catch(() => undefined);
       process.exitCode = 1;
       return;
     }
@@ -89,7 +126,7 @@ async function main(): Promise<void> {
   const shutdown = (signal: string): void => {
     console.log(`cerrando por ${signal}`);
     const done = (): void => {
-      void (caseRepo ? caseRepo.close() : Promise.resolve()).finally(() => process.exit(0));
+      void (durable ? durable.close() : Promise.resolve()).finally(() => process.exit(0));
     };
     server.close(done);
     // Un cliente que no suelta la conexión no debe impedir el reinicio.

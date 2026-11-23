@@ -6,6 +6,8 @@ import { ServiceError, conflict, forbidden, invalid, notFound, toServiceError } 
 import { CASE_STATES, transition, type CaseEvent } from "../domain/cases.ts";
 import { proposeReply } from "../domain/proposals.ts";
 import { buildApproval } from "../domain/approvals.ts";
+import { buildIntent, transitionIntent } from "../domain/outbound.ts";
+import { acceptStepIn, submitDocumentInto } from "../domain/onboarding.ts";
 import { computeDueAt, DEFAULT_SLA_POLICY } from "../domain/sla.ts";
 import { buildReport, percentile } from "../reporting/reports.ts";
 import { renderCasePage, renderPortalHome } from "./ui.ts";
@@ -104,6 +106,11 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       anam: ctx.anam.snapshot().configured ? "configured" : "not_configured",
       database: ctx.config.databaseUrl ? "configured" : "in_memory",
       case_store: ctx.caseRepo.kind,
+      proposal_store: ctx.proposals.kind,
+      approval_store: ctx.approvals.kind,
+      intent_store: ctx.intentRepo.kind,
+      plan_store: ctx.plans.kind,
+      host_bridge: ctx.config.agente.baseUrl ? "endpoint_configured_not_verified" : "not_configured",
     }),
   );
 
@@ -236,15 +243,24 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       now: ctx.store.now(),
       policyRef: "policy_reply_v1",
     });
-    ctx.store.proposals.insert(proposal);
+    await ctx.proposals.insert(proposal);
     return c.json({ proposal, effect: "none", note: "La propuesta no envía nada" }, 201);
+  });
+
+  app.get("/v1/clientes/answer-proposals/:id", async (c) => {
+    const actor = c.get("actor");
+    requireCapability(actor, "cases.read");
+    const proposal = await ctx.proposals.get(actor.tenantId, c.req.param("id"));
+    if (!proposal) throw notFound();
+    assertTenant(actor, proposal.tenantId);
+    return c.json({ proposal });
   });
 
   app.post("/v1/clientes/outbound-previews", async (c) => {
     const actor = c.get("actor");
     requireCapability(actor, "reply.propose");
     const body = PreviewBody.parse(await c.req.json());
-    const proposal = ctx.store.proposals.get(actor.tenantId, body.proposalId);
+    const proposal = await ctx.proposals.get(actor.tenantId, body.proposalId);
     if (!proposal) throw notFound();
     return c.json({
       preview: {
@@ -263,11 +279,31 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
     const actor = c.get("actor");
     requireCapability(actor, "reply.approve");
     const body = ApproveBody.parse(await c.req.json());
-    const proposal = ctx.store.proposals.get(actor.tenantId, body.proposalId);
+    const proposal = await ctx.proposals.get(actor.tenantId, body.proposalId);
     if (!proposal) throw notFound();
     const caseDto = await ctx.caseRepo.get(actor.tenantId, body.caseId);
     if (!caseDto) throw notFound();
     const now = ctx.store.now();
+    const channel = body.channel === "whatsapp" ? "whatsapp" : body.channel === "email" ? "email" : "chatwoot";
+    const candidate = buildIntent(
+      {
+        tenantId: actor.tenantId,
+        conversationRef: caseDto.conversationRefs[0] ?? "conv_unknown",
+        contactRef: caseDto.contactId,
+        channel,
+        payload: { body: proposal.body, recipientRef: body.recipientRef },
+        proposalRef: proposal.id,
+      },
+      now,
+    );
+    // Idempotencia durable: el mismo envío repetido devuelve el intent existente
+    // en vez de crear otra aprobación o encolar dos veces.
+    const created = await ctx.intentRepo.create(candidate);
+    if (!created.created && created.intent.approvalRef) {
+      // Replay completo: ni otra aprobación ni otro intent.
+      const existingApproval = await ctx.approvals.get(actor.tenantId, created.intent.approvalRef);
+      return c.json({ intent: created.intent, approval: existingApproval, idempotentReplay: true }, 201);
+    }
     const approval = buildApproval(
       {
         tenantId: actor.tenantId,
@@ -286,25 +322,51 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
         proposerActorId: proposal.modelConfigRef,
       },
     );
-    ctx.store.approvals.insert(approval);
-    const intent = ctx.intents.create({
-      tenantId: actor.tenantId,
-      conversationRef: caseDto.conversationRefs[0] ?? "conv_unknown",
-      contactRef: caseDto.contactId,
-      channel: body.channel === "whatsapp" ? "whatsapp" : body.channel === "email" ? "email" : "chatwoot",
-      payload: { body: proposal.body, recipientRef: body.recipientRef },
-      proposalRef: proposal.id,
-    });
-    const awaiting = ctx.intents.attachApproval(actor.tenantId, intent.id, approval.id);
-    ctx.store.intents.insert(awaiting);
+    await ctx.approvals.insert(approval);
+    const awaiting = transitionIntent(created.intent, "awaiting_approval", { approvalRef: approval.id }, now);
+    const saved = await ctx.intentRepo.save(actor.tenantId, awaiting, created.intent);
+    if (!saved) throw conflict("El intent cambió mientras se aprobaba: reintentar");
     return c.json({ intent: awaiting, approval }, 201);
   });
 
-  app.get("/v1/clientes/outbound-intents/:id", (c) => {
+  app.get("/v1/clientes/outbound-intents/:id", async (c) => {
     const actor = c.get("actor");
     requireCapability(actor, "cases.read");
-    const intent = ctx.intents.get(actor.tenantId, c.req.param("id"));
+    const intent = await ctx.intentRepo.get(actor.tenantId, c.req.param("id"));
+    if (!intent) throw notFound();
     return c.json({ intent });
+  });
+
+  /**
+   * Envío a un sandbox local: no habla con ningún proveedor y lo declara en la
+   * respuesta. Sirve para activar la vertical completa (aprobación → receipt)
+   * sin presentar un mock como integración real. Prohibido en producción.
+   */
+  app.post("/v1/clientes/outbound-intents/:id/sandbox-dispatch", async (c) => {
+    const actor = c.get("actor");
+    requireCapability(actor, "cases.write");
+    if (ctx.config.env === "production") throw forbidden("Sandbox no disponible en producción");
+    const current = await ctx.intentRepo.get(actor.tenantId, c.req.param("id"));
+    if (!current) throw notFound();
+    const chain: Array<{ next: Parameters<typeof transitionIntent>[1]; patch?: Parameters<typeof transitionIntent>[2] }> = [
+      { next: "approved" },
+      { next: "queued" },
+      { next: "leased", patch: { leaseFence: current.leaseFence + 1 } },
+      { next: "dispatching" },
+      { next: "accepted", patch: { remoteRefs: [`sandbox:${current.id}`] } },
+    ];
+    let intent = current;
+    for (const step of chain) {
+      const next = transitionIntent(intent, step.next, step.patch ?? {}, ctx.store.now());
+      const applied = await ctx.intentRepo.save(actor.tenantId, next, intent);
+      if (!applied) throw conflict("El intent cambió durante el despacho: reintentar");
+      intent = next;
+    }
+    return c.json({
+      intent,
+      receipt: { kind: "sandbox", ref: `sandbox:${current.id}`, note: "sin proveedor externo" },
+      effect: "sandbox_only",
+    });
   });
 
   app.post("/v1/clientes/outbound-intents/:id/reconcile", async (c) => {
@@ -314,13 +376,19 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       .object({ remoteRef: z.string().min(1).max(300), delivered: z.boolean() })
       .strict()
       .parse(await c.req.json());
-    const workerReconcile = ctx.intents.get(actor.tenantId, c.req.param("id"));
+    const workerReconcile = await ctx.intentRepo.get(actor.tenantId, c.req.param("id"));
+    if (!workerReconcile) throw notFound();
     if (workerReconcile.state !== "outcome_unknown" && workerReconcile.state !== "reconciliation_required" && workerReconcile.state !== "accepted") {
       throw invalid("El intent no está en un estado reconciliable");
     }
-    const next = body.delivered
-      ? ctx.intents.transition(actor.tenantId, workerReconcile.id, "delivered", { remoteRefs: [body.remoteRef] })
-      : ctx.intents.transition(actor.tenantId, workerReconcile.id, "accepted", { remoteRefs: [body.remoteRef] });
+    const next = transitionIntent(
+      workerReconcile,
+      body.delivered ? "delivered" : "accepted",
+      { remoteRefs: [body.remoteRef] },
+      ctx.store.now(),
+    );
+    const applied = await ctx.intentRepo.save(actor.tenantId, next, workerReconcile);
+    if (!applied) throw conflict("El intent cambió durante la reconciliación: reintentar");
     return c.json({ intent: next });
   });
 
@@ -343,6 +411,80 @@ export function createApp(ctx: AppContext): Hono<AuthContext> {
       reasonCodes: result.reasonCodes,
       citations: result.citations,
     });
+  });
+
+  /* ── Onboarding (CLI-C29): vertical slice durable ───────────────────────── */
+
+  app.post("/v1/clientes/onboarding/plans", async (c) => {
+    const actor = c.get("actor");
+    requireCapability(actor, "cases.write");
+    const body = z
+      .object({
+        organizationRef: z.string().min(3).max(200),
+        playbookId: z.string().min(3).max(120),
+        playbookVersion: z.number().int().positive(),
+      })
+      .strict()
+      .parse(await c.req.json());
+    if (!ctx.store.organizations.get(actor.tenantId, body.organizationRef)) throw notFound();
+    const plan = ctx.onboarding.startPlan({
+      tenantId: actor.tenantId,
+      organizationRef: body.organizationRef,
+      playbookId: body.playbookId,
+      version: body.playbookVersion,
+      assignedBy: actor.id,
+    });
+    await ctx.plans.insert(plan);
+    return c.json({ plan, effect: "none" }, 201);
+  });
+
+  app.get("/v1/clientes/onboarding/plans/:id", async (c) => {
+    const actor = c.get("actor");
+    requireCapability(actor, "cases.read");
+    const plan = await ctx.plans.get(actor.tenantId, c.req.param("id"));
+    if (!plan) throw notFound();
+    return c.json({ plan });
+  });
+
+  app.post("/v1/clientes/onboarding/plans/:id/steps/:key/document", async (c) => {
+    const actor = c.get("actor");
+    requireCapability(actor, "cases.write");
+    const body = z
+      .object({ documentRef: z.string().min(3).max(400), evidenceRef: z.string().min(3).max(400) })
+      .strict()
+      .parse(await c.req.json());
+    const plan = await ctx.plans.get(actor.tenantId, c.req.param("id"));
+    if (!plan) throw notFound();
+    const next = submitDocumentInto(plan, {
+      stepKey: c.req.param("key"),
+      documentRef: body.documentRef,
+      evidenceRef: body.evidenceRef,
+    });
+    const saved = await ctx.plans.save(actor.tenantId, next, plan.version);
+    if (!saved) throw conflict("El plan cambió: volver a leer antes de reenviar");
+    return c.json({ plan: next, effect: "none", note: "Recibir el documento no acredita el hito" });
+  });
+
+  app.post("/v1/clientes/onboarding/plans/:id/steps/:key/acceptance", async (c) => {
+    const actor = c.get("actor");
+    requireCapability(actor, "cases.transition");
+    if (actor.kind !== "human") throw forbidden("La aceptación de un hito exige un humano");
+    const plan = await ctx.plans.get(actor.tenantId, c.req.param("id"));
+    if (!plan) throw notFound();
+    const next = acceptStepIn(plan, { stepKey: c.req.param("key"), acceptedBy: actor.id });
+    const saved = await ctx.plans.save(actor.tenantId, next, plan.version);
+    if (!saved) throw conflict("El plan cambió: volver a leer antes de aceptar");
+    await ctx.caseRepo.appendAudit({
+      id: `audit_${crypto.randomUUID()}`,
+      tenantId: actor.tenantId,
+      actorId: actor.id,
+      capability: "onboarding.accept",
+      operationId: c.get("correlationId"),
+      correlationId: c.get("correlationId"),
+      outcome: "applied",
+      payloadRef: `plan:${plan.id}:${c.req.param("key")}`,
+    });
+    return c.json({ plan: next });
   });
 
   app.post("/v1/clientes/handoffs", async (c) => {

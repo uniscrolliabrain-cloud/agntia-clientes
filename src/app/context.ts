@@ -2,6 +2,16 @@ import { loadConfig, type AppConfig } from "../config.ts";
 import type { Case as CaseDto } from "../contracts/dto.ts";
 import { MemoryStore } from "../storage/memory.ts";
 import { MemoryCaseRepository, type CaseRepository, type SeedContactRef } from "../storage/cases.ts";
+import {
+  MemoryApprovalRepository,
+  MemoryIntentRepository,
+  MemoryPlanRepository,
+  MemoryProposalRepository,
+  type ApprovalRepository,
+  type IntentRepository,
+  type PlanRepository,
+  type ProposalRepository,
+} from "../storage/aggregates.ts";
 import { JwtVerifier, type JwksSource } from "../auth/jwt.ts";
 import type { ContactPortalGrant, Membership, PrincipalDirectory } from "../auth/principal.ts";
 import { ROLE_CAPABILITIES } from "../auth/principal.ts";
@@ -51,6 +61,11 @@ export interface AppContext {
   store: MemoryStore;
   /** Casos: memoria en test/desarrollo, PostgreSQL cuando hay DATABASE_URL. */
   caseRepo: CaseRepository;
+  /** Agregados de las vertical slices: mismo patrón que los casos. */
+  proposals: ProposalRepository;
+  approvals: ApprovalRepository;
+  intentRepo: IntentRepository;
+  plans: PlanRepository;
   directory: PrincipalDirectory;
   jwt: JwtVerifier;
   twins: TwinRegistry;
@@ -144,6 +159,11 @@ export interface ContextOptions {
   transport?: HttpTransport;
   /** Sustituye el almacén de casos (p. ej. PostgreSQL). */
   caseRepository?: CaseRepository;
+  /** Sustituye los agregados durables (p. ej. PostgreSQL). */
+  proposalRepository?: ProposalRepository;
+  approvalRepository?: ApprovalRepository;
+  intentRepository?: IntentRepository;
+  planRepository?: PlanRepository;
   /** Semilla de fixtures sintéticas: activa por defecto fuera de producción. */
   seed?: boolean;
 }
@@ -153,6 +173,10 @@ export function buildContext(options: ContextOptions = {}): AppContext {
   const clock = options.clock ?? fixedClock(FIXTURE_NOW);
   const store = new MemoryStore({ clock });
   const caseRepo = options.caseRepository ?? new MemoryCaseRepository(store);
+  const proposals = options.proposalRepository ?? new MemoryProposalRepository(store);
+  const approvals = options.approvalRepository ?? new MemoryApprovalRepository(store);
+  const intentRepo = options.intentRepository ?? new MemoryIntentRepository(store);
+  const plans = options.planRepository ?? new MemoryPlanRepository();
   const directory = new SeededDirectory(MEMBERSHIP_SEED, CONTACT_GRANTS);
   const secrets = new InMemorySecretStore();
   const transport = options.transport ?? new FakeTransport();
@@ -199,6 +223,10 @@ export function buildContext(options: ContextOptions = {}): AppContext {
     clock,
     store,
     caseRepo,
+    proposals,
+    approvals,
+    intentRepo,
+    plans,
     directory,
     jwt,
     twins: twinsRegistry,
@@ -245,6 +273,41 @@ export function seedContext(ctx: AppContext): void {
   }
   for (const caseDto of cases()) ctx.store.cases.insert(caseDto);
   for (const version of knowledgeVersions()) ctx.knowledge.ingest(version);
+
+  // Playbook de onboarding (CLI-C29): configuración versionada, no dato de
+  // cliente. Se siembra en cada arranque porque vive en memoria; los planes sí
+  // son durables. Repetir la semilla no duplica la versión publicada.
+  if (!ctx.onboarding.hasPlaybook("playbook_onboarding_v1", 1)) {
+    ctx.onboarding.publishPlaybook({
+      id: "playbook_onboarding_v1",
+      version: 1,
+      serviceKind: "support",
+      status: "published",
+      steps: [
+        {
+          key: "dpa_signed",
+          title: "DPA firmado y archivado",
+          required: true,
+          requiresDocument: true,
+          assignedRole: "tenant_owner",
+        },
+        {
+          key: "contacts_verified",
+          title: "Contactos principales verificados",
+          required: true,
+          requiresDocument: false,
+          assignedRole: "operator",
+        },
+        {
+          key: "sla_agreed",
+          title: "SLA y horario acordados",
+          required: true,
+          requiresDocument: true,
+          assignedRole: "tenant_owner",
+        },
+      ],
+    });
+  }
 
   for (const twin of twins()) ctx.twins.register(twin);
   const signed = mandates().map((mandate) => ({

@@ -21,6 +21,10 @@ jobs:
         run: npm test
       - name: E2E A-I
         run: npm run eval
+      - name: Contrato del puente host
+        run: npm run bridge:contract
+      - name: Instalación en host limpio
+        run: npm run install:check
       - name: Upload sanitized evidence
         uses: actions/upload-artifact@v4
         with:
@@ -43,6 +47,8 @@ jobs:
         run: npm run db:persistence
       - name: API sirviendo casos desde PostgreSQL entre reinicios
         run: npm run db:http
+      - name: Vertical slices durables (atención y onboarding)
+        run: npm run slices
 
   docs:
     runs-on: ubuntu-latest
