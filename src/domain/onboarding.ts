@@ -45,6 +45,48 @@ export interface OnboardingPlan {
   version: number;
 }
 
+/**
+ * Transiciones puras del plan (CLI-C29). No leen ni escriben almacenamiento:
+ * el servicio en memoria y la ruta HTTP durable aplican exactamente las mismas
+ * reglas, incluida la aceptación humana con evidencia.
+ */
+export function submitDocumentInto(
+  plan: OnboardingPlan,
+  input: { stepKey: string; documentRef: string; evidenceRef: string },
+): OnboardingPlan {
+  if (!input.documentRef || !input.evidenceRef) throw invalid("Documento sin evidencia");
+  if (!plan.stepState.some((step) => step.key === input.stepKey)) throw invalid("Paso desconocido");
+  const stepState = plan.stepState.map((step) =>
+    step.key === input.stepKey
+      ? {
+          ...step,
+          state: "waiting" as const,
+          documentRef: input.documentRef,
+          evidenceRef: input.evidenceRef,
+          waitingOn: "operator" as const,
+          acceptedBy: null,
+        }
+      : step,
+  );
+  return { ...plan, stepState, version: plan.version + 1 };
+}
+
+export function acceptStepIn(
+  plan: OnboardingPlan,
+  input: { stepKey: string; acceptedBy: string },
+): OnboardingPlan {
+  const step = plan.stepState.find((s) => s.key === input.stepKey);
+  if (!step) throw invalid("Paso desconocido");
+  if (step.state !== "waiting") throw conflict("El paso no está pendiente de aceptación");
+  if (!step.evidenceRef) throw forbidden("Aceptación sin evidencia");
+  const stepState = plan.stepState.map((s) =>
+    s.key === input.stepKey
+      ? { ...s, state: "done" as const, acceptedBy: input.acceptedBy, waitingOn: null }
+      : s,
+  );
+  return { ...plan, stepState, version: plan.version + 1 };
+}
+
 export class OnboardingService {
   readonly #playbooks = new Map<string, Playbook[]>();
   readonly #plans = new Map<string, OnboardingPlan>();
@@ -63,6 +105,10 @@ export class OnboardingService {
     versions.push(published);
     this.#playbooks.set(playbook.id, versions);
     return published;
+  }
+
+  hasPlaybook(playbookId: string, version: number): boolean {
+    return Boolean(this.#playbooks.get(playbookId)?.some((p) => p.version === version));
   }
 
   startPlan(input: {
@@ -105,28 +151,17 @@ export class OnboardingService {
     evidenceRef: string;
   }): OnboardingPlan {
     const plan = this.#require(input.planId, input.tenantId);
-    if (!input.documentRef || !input.evidenceRef) throw invalid("Documento sin evidencia");
-    return this.#patchStep(plan, input.stepKey, {
-      state: "waiting",
-      documentRef: input.documentRef,
-      evidenceRef: input.evidenceRef,
-      waitingOn: "operator",
-      acceptedBy: null,
-    });
+    const next = submitDocumentInto(plan, input);
+    this.#plans.set(next.id, next);
+    return next;
   }
 
   /** Recibir un documento no implica que sea correcto: hace falta aceptación humana. */
   acceptStep(input: { planId: string; tenantId: string; stepKey: string; acceptedBy: string }): OnboardingPlan {
     const plan = this.#require(input.planId, input.tenantId);
-    const step = plan.stepState.find((s) => s.key === input.stepKey);
-    if (!step) throw invalid("Paso desconocido");
-    if (step.state !== "waiting") throw conflict("El paso no está pendiente de aceptación");
-    if (!step.evidenceRef) throw forbidden("Aceptación sin evidencia");
-    return this.#patchStep(plan, input.stepKey, {
-      state: "done",
-      acceptedBy: input.acceptedBy,
-      waitingOn: null,
-    });
+    const next = acceptStepIn(plan, input);
+    this.#plans.set(next.id, next);
+    return next;
   }
 
   /** Nueva versión del playbook: no marca pasos antiguos como cumplidos. */
@@ -153,15 +188,6 @@ export class OnboardingService {
       version: plan.version + 1,
     };
     this.#plans.set(planId, next);
-    return next;
-  }
-
-  #patchStep(plan: OnboardingPlan, stepKey: string, patch: Partial<PlanStep>): OnboardingPlan {
-    const stepState = plan.stepState.map((step) =>
-      step.key === stepKey ? { ...step, ...patch } : step,
-    );
-    const next: OnboardingPlan = { ...plan, stepState, version: plan.version + 1 };
-    this.#plans.set(plan.id, next);
     return next;
   }
 

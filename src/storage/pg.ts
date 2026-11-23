@@ -1,7 +1,20 @@
 import pg from "pg";
-import type { Case as CaseDto } from "../contracts/dto.ts";
+import type {
+  AnswerProposal,
+  ApprovalBinding,
+  Case as CaseDto,
+  OutboundIntent,
+} from "../contracts/dto.ts";
+import type { OnboardingPlan } from "../domain/onboarding.ts";
+import { conflict } from "../lib/errors.ts";
 import type { AuditEntry } from "./memory.ts";
 import type { CaseRepository, SeedContactRef } from "./cases.ts";
+import type {
+  ApprovalRepository,
+  IntentRepository,
+  PlanRepository,
+  ProposalRepository,
+} from "./aggregates.ts";
 
 /**
  * CLI-C06 · Store sobre PostgreSQL real.
@@ -265,6 +278,210 @@ export class TenantTx {
     );
     return { created: out.rows.length === 1 };
   }
+
+  /* ── Propuestas, aprobaciones e intents (vertical slice de atención) ───── */
+
+  async insertProposalDocument(proposal: AnswerProposal): Promise<void> {
+    await this.#client.query(
+      `insert into answer_proposals (tenant_id, id, case_ref, content_revision, locale, body,
+         citations, unsupported_claims, model_config_ref, policy_ref, confidence, created_at, document)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       on conflict (tenant_id, id) do nothing`,
+      [
+        this.tenantId,
+        proposal.id,
+        proposal.caseRef,
+        proposal.contentRevision,
+        proposal.locale,
+        proposal.body,
+        JSON.stringify(proposal.citations),
+        proposal.unsupportedClaims,
+        proposal.modelConfigRef,
+        proposal.policyRef,
+        proposal.confidence,
+        proposal.createdAt,
+        JSON.stringify(proposal),
+      ],
+    );
+  }
+
+  async getProposalDocument(id: string): Promise<AnswerProposal | null> {
+    const out = await this.#client.query<{ document: AnswerProposal }>(
+      `select document from answer_proposals where id = $1`,
+      [id],
+    );
+    return out.rows[0]?.document ?? null;
+  }
+
+  async listProposalDocuments(limit = 200): Promise<AnswerProposal[]> {
+    const out = await this.#client.query<{ document: AnswerProposal }>(
+      `select document from answer_proposals order by created_at desc, id limit $1`,
+      [limit],
+    );
+    return out.rows.map((row) => row.document);
+  }
+
+  async insertApprovalDocument(approval: ApprovalBinding): Promise<void> {
+    await this.#client.query(
+      `insert into approval_bindings (tenant_id, id, proposal_hash, recipient_hash, channel_hash,
+         attachments_hash, actor_id, expected_version, policy_version, expires_at,
+         revocation_version, created_at, document)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+       on conflict (tenant_id, id) do nothing`,
+      [
+        this.tenantId,
+        approval.id,
+        approval.proposalHash,
+        approval.recipientHash,
+        approval.channelHash,
+        approval.attachmentsHash,
+        approval.actorId,
+        approval.expectedVersion,
+        approval.policyVersion,
+        approval.expiresAt,
+        approval.revocationVersion,
+        approval.createdAt,
+        JSON.stringify(approval),
+      ],
+    );
+  }
+
+  async getApprovalDocument(id: string): Promise<ApprovalBinding | null> {
+    const out = await this.#client.query<{ document: ApprovalBinding }>(
+      `select document from approval_bindings where id = $1`,
+      [id],
+    );
+    return out.rows[0]?.document ?? null;
+  }
+
+  /** `true` solo si este proceso creó la fila; el replay no duplica el intent. */
+  async insertIntentDocument(intent: OutboundIntent): Promise<boolean> {
+    const out = await this.#client.query<{ id: string }>(
+      `insert into outbound_intents (tenant_id, id, operation_key, conversation_ref, contact_ref,
+         channel, payload_hash, proposal_ref, approval_ref, state, lease_fence, remote_refs,
+         reconciliation_ref, created_at, updated_at, document)
+       values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+       on conflict (tenant_id, operation_key) do nothing
+       returning id`,
+      [
+        this.tenantId,
+        intent.id,
+        intent.operationKey,
+        intent.conversationRef,
+        intent.contactRef,
+        intent.channel,
+        intent.payloadHash,
+        intent.proposalRef,
+        intent.approvalRef,
+        intent.state,
+        intent.leaseFence,
+        intent.remoteRefs,
+        intent.reconciliationRef,
+        intent.createdAt,
+        intent.updatedAt,
+        JSON.stringify(intent),
+      ],
+    );
+    return out.rows.length === 1;
+  }
+
+  async getIntentDocument(id: string): Promise<OutboundIntent | null> {
+    const out = await this.#client.query<{ document: OutboundIntent }>(
+      `select document from outbound_intents where id = $1`,
+      [id],
+    );
+    return out.rows[0]?.document ?? null;
+  }
+
+  async getIntentByOperationKey(operationKey: string): Promise<OutboundIntent | null> {
+    const out = await this.#client.query<{ document: OutboundIntent }>(
+      `select document from outbound_intents where operation_key = $1`,
+      [operationKey],
+    );
+    return out.rows[0]?.document ?? null;
+  }
+
+  async listIntentDocuments(limit = 200): Promise<OutboundIntent[]> {
+    const out = await this.#client.query<{ document: OutboundIntent }>(
+      `select document from outbound_intents order by created_at desc, id limit $1`,
+      [limit],
+    );
+    return out.rows.map((row) => row.document);
+  }
+
+  /**
+   * CAS sobre el estado de la FSM: dos despachadores que leyeron el mismo
+   * intent no pueden aplicarlo dos veces; el segundo recibe `false` → 409.
+   */
+  async replaceIntentDocument(next: OutboundIntent, expected: OutboundIntent): Promise<boolean> {
+    const out = await this.#client.query<{ id: string }>(
+      `update outbound_intents set approval_ref = $3, state = $4, lease_fence = $5,
+         remote_refs = $6, reconciliation_ref = $7, updated_at = $8, document = $9
+       where id = $1 and state = $2 and lease_fence = $10
+       returning id`,
+      [
+        next.id,
+        expected.state,
+        next.approvalRef,
+        next.state,
+        next.leaseFence,
+        next.remoteRefs,
+        next.reconciliationRef,
+        next.updatedAt,
+        JSON.stringify(next),
+        expected.leaseFence,
+      ],
+    );
+    return out.rows.length === 1;
+  }
+
+  /* ── Planes de onboarding (vertical slice de onboarding) ───────────────── */
+
+  async insertPlanDocument(plan: OnboardingPlan): Promise<void> {
+    await this.#client.query(
+      `insert into onboarding_plans (tenant_id, id, organization_ref, playbook_id,
+         playbook_version, version, state, document, created_at, updated_at)
+       values ($1,$2,$3,$4,$5,$6,'active',$7,$8,$8)
+       on conflict (tenant_id, id) do nothing`,
+      [
+        this.tenantId,
+        plan.id,
+        plan.organizationRef,
+        plan.playbookId,
+        plan.playbookVersion,
+        plan.version,
+        JSON.stringify(plan),
+        plan.createdAt,
+      ],
+    );
+  }
+
+  async getPlanDocument(id: string): Promise<OnboardingPlan | null> {
+    const out = await this.#client.query<{ document: OnboardingPlan }>(
+      `select document from onboarding_plans where id = $1`,
+      [id],
+    );
+    return out.rows[0]?.document ?? null;
+  }
+
+  async listPlanDocuments(limit = 200): Promise<OnboardingPlan[]> {
+    const out = await this.#client.query<{ document: OnboardingPlan }>(
+      `select document from onboarding_plans order by created_at desc, id limit $1`,
+      [limit],
+    );
+    return out.rows.map((row) => row.document);
+  }
+
+  async replacePlanDocument(next: OnboardingPlan, expectedVersion: number): Promise<boolean> {
+    const out = await this.#client.query<{ id: string }>(
+      `update onboarding_plans set playbook_version = $3, version = $4, document = $5,
+         updated_at = now()
+       where id = $1 and version = $2
+       returning id`,
+      [next.id, expectedVersion, next.playbookVersion, next.version, JSON.stringify(next)],
+    );
+    return out.rows.length === 1;
+  }
 }
 
 export class PgStore {
@@ -356,5 +573,109 @@ export class PgCaseRepository implements CaseRepository {
 
   async close(): Promise<void> {
     await this.#store.close();
+  }
+}
+
+/**
+ * CLI-C06 · Agregados durables.
+ *
+ * Igual que en casos, el DTO completo vive en `document` (jsonb) y las columnas
+ * proyectadas sostienen índices, la FK y el CAS. El tenant nunca viaja en los
+ * datos: lo fija `withTenant` con `set local app.tenant_id` y la RLS lo aplica.
+ */
+export class PgProposalRepository implements ProposalRepository {
+  readonly kind = "postgres" as const;
+  readonly #store: PgStore;
+
+  constructor(store: PgStore) {
+    this.#store = store;
+  }
+
+  async insert(proposal: AnswerProposal): Promise<void> {
+    await this.#store.withTenant(proposal.tenantId, (tx) => tx.insertProposalDocument(proposal));
+  }
+
+  async get(tenantId: string, id: string): Promise<AnswerProposal | null> {
+    return this.#store.withTenant(tenantId, (tx) => tx.getProposalDocument(id));
+  }
+
+  async list(tenantId: string): Promise<AnswerProposal[]> {
+    return this.#store.withTenant(tenantId, (tx) => tx.listProposalDocuments());
+  }
+}
+
+export class PgApprovalRepository implements ApprovalRepository {
+  readonly kind = "postgres" as const;
+  readonly #store: PgStore;
+
+  constructor(store: PgStore) {
+    this.#store = store;
+  }
+
+  async insert(approval: ApprovalBinding): Promise<void> {
+    await this.#store.withTenant(approval.tenantId, (tx) => tx.insertApprovalDocument(approval));
+  }
+
+  async get(tenantId: string, id: string): Promise<ApprovalBinding | null> {
+    return this.#store.withTenant(tenantId, (tx) => tx.getApprovalDocument(id));
+  }
+}
+
+export class PgIntentRepository implements IntentRepository {
+  readonly kind = "postgres" as const;
+  readonly #store: PgStore;
+
+  constructor(store: PgStore) {
+    this.#store = store;
+  }
+
+  async create(intent: OutboundIntent): Promise<{ intent: OutboundIntent; created: boolean }> {
+    return this.#store.withTenant(intent.tenantId, async (tx) => {
+      const created = await tx.insertIntentDocument(intent);
+      if (created) return { intent, created: true };
+      const existing = await tx.getIntentByOperationKey(intent.operationKey);
+      if (!existing) throw conflict("Conflicto de idempotencia sin fila visible");
+      if (existing.payloadHash !== intent.payloadHash) {
+        throw conflict("Idempotency-Key reutilizada con otro contenido");
+      }
+      return { intent: existing, created: false };
+    });
+  }
+
+  async get(tenantId: string, id: string): Promise<OutboundIntent | null> {
+    return this.#store.withTenant(tenantId, (tx) => tx.getIntentDocument(id));
+  }
+
+  async list(tenantId: string): Promise<OutboundIntent[]> {
+    return this.#store.withTenant(tenantId, (tx) => tx.listIntentDocuments());
+  }
+
+  async save(tenantId: string, next: OutboundIntent, expected: OutboundIntent): Promise<boolean> {
+    return this.#store.withTenant(tenantId, (tx) => tx.replaceIntentDocument(next, expected));
+  }
+}
+
+export class PgPlanRepository implements PlanRepository {
+  readonly kind = "postgres" as const;
+  readonly #store: PgStore;
+
+  constructor(store: PgStore) {
+    this.#store = store;
+  }
+
+  async insert(plan: OnboardingPlan): Promise<void> {
+    await this.#store.withTenant(plan.tenantId, (tx) => tx.insertPlanDocument(plan));
+  }
+
+  async get(tenantId: string, id: string): Promise<OnboardingPlan | null> {
+    return this.#store.withTenant(tenantId, (tx) => tx.getPlanDocument(id));
+  }
+
+  async list(tenantId: string): Promise<OnboardingPlan[]> {
+    return this.#store.withTenant(tenantId, (tx) => tx.listPlanDocuments());
+  }
+
+  async save(tenantId: string, next: OnboardingPlan, expectedVersion: number): Promise<boolean> {
+    return this.#store.withTenant(tenantId, (tx) => tx.replacePlanDocument(next, expectedVersion));
   }
 }

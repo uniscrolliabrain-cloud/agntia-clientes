@@ -18,6 +18,9 @@ privacidad, evals y CI. Cada fase tiene su anexo en
 | Tipos | `npm run typecheck` | sin errores |
 | Tests | `npm test` | **114/114 pass, 0 fail** |
 | E2E A–I | `npm run eval` | **9/9 PASS** → `artifacts/e2e-report.json` |
+| Vertical slices | `npm run slices` | **20/20** (atención y onboarding, dos reinicios del API) |
+| Instalación en host | `npm run install:check` | **10/10** (tarball → proyecto vacío → arranque desde `node_modules`) |
+| Contrato del puente | `npm run bridge:contract` | **11/11** contra un stand-in local, no contra `/agente` |
 | Manifiesto | `npm run reports` | 42 anexos, conteos 42/294/84 intactos |
 
 Reparto de gates por fase: **34 PASS**, **8 NOT_VERIFIED**, **0 BLOCKED** (equivalen a
@@ -51,20 +54,26 @@ Se revisaron los diez documentos de preparación y se corrigió lo que faltaba (
    aislamiento, fail-closed e idempotencia siguen valiendo después. `npm run db:http` cierra el
    tramo que faltaba: con `DATABASE_URL` el API siembra en PostgreSQL, aplica una transición FSM
    por HTTP y, tras SIGTERM y arranque de otro proceso, devuelve el mismo estado y versión
-   (13/13, auditoría durable, CAS con 409, aislamiento A/B). Lo que sigue en memoria del proceso
-   son contactos, propuestas, aprobaciones, intents y outbox; falta llevarlos al mismo patrón y
-   repetir la prueba en Supabase staging.
+   (13/13, auditoría durable, CAS con 409, aislamiento A/B). `npm run slices` añade 20/20: las
+   vertical slices de atención (propuesta → aprobación → intent → despacho sandbox → receipt →
+   `delivered`) y onboarding (plan → documento → aceptación) sobreviven a dos reinicios, con
+   aislamiento A/B y fail-closed sin `app.tenant_id`. Lo que sigue en memoria del proceso son
+   contactos CRUD, outbox y jobs; falta repetir todo en Supabase staging.
 2. **Sin proveedores reales**: Chatwoot, Twenty, Frappe, Zammad, Resend y WhatsApp tienen
    contrato y transporte fake. Cero credenciales, cero llamadas, cero receipts reales.
 3. **WhatsApp sin cuenta**: la documentación de Meta se revalidó el 2026-11-20 (ventana de 24 h,
    plantillas preaprobadas, tres categorías) y hay tests de esas reglas, pero sin WABA el canal
    sigue en `account_not_configured` y ningún envío es posible.
 4. **Anam no configurado**: la ruta de sesión responde 503 con `fallback: text_only`.
-5. **Bridge del padre inexistente**: `HOST_BRIDGE_NOT_VERIFIED`; no se ha tocado `/agente`.
+5. **Bridge del padre no verificado**: `HOST_BRIDGE_NOT_VERIFIED`; no se ha tocado `/agente`.
+   El lado cliente (`HttpHost`) está implementado y probado contra el contrato (11/11), y el
+   paquete se instala y arranca en un host limpio (10/10). Falta el checkout autorizado de
+   `/agente`, sus cuatro endpoints y su token: [INSTALACION-AGENTE.md](INSTALACION-AGENTE.md).
 6. **UI probada en navegador, no con lector de pantalla**: `/portal` se abrió en Chromium real
    (capturas en `docs/implementation/evidence/`) y se corrigieron tres defectos; falta un flujo
    completo y revisión con lector de pantalla y móvil real. C33 sigue `NOT_VERIFIED`.
-7. **CI en GitHub en verde**: jobs `verify`, `docs` y `database` (migraciones + RLS reales).
+7. **CI en GitHub en verde**: jobs `verify` (incluye contrato del puente e instalación en host),
+   `docs` y `database` (migraciones, RLS reales y vertical slices).
 
 ## Hallazgos sobre la documentación previa
 
@@ -90,11 +99,14 @@ Estos bloques no se simulan: quedan `BLOCKED` con su motivo en el anexo correspo
 ## Cómo continuar
 
 1. Revisar este informe y los 42 anexos; decidir qué se ajusta.
-2. Autorizar Supabase staging para convertir `C03` en PASS real y repetir allí las migraciones de
-   C06 ya verificadas en PostgreSQL local.
-3. Elegir **un** backend de conversaciones y ejecutar discovery real (C13/C14/C15–C17).
-4. Resolver la divergencia 12/16 y congelar revisión canónica del twin.
-5. Solo entonces: piloto con datos sintéticos, y después producción con aprobación explícita.
+2. Autorizar Supabase staging para convertir `C03` en PASS real y repetir allí las migraciones y
+   las vertical slices de C06 ya verificadas en PostgreSQL local.
+3. Autorizar el checkout de `/agente` e implementar sus cuatro endpoints de host; después,
+   instalar el tarball allí y hacer una llamada real con su token (hoy 11/11 solo contra el
+   contrato local).
+4. Elegir **un** backend de conversaciones y ejecutar discovery real (C13/C14/C15–C17).
+5. Resolver la divergencia 12/16 y congelar revisión canónica del twin.
+6. Solo entonces: piloto con datos sintéticos, y después producción con aprobación explícita.
 
 No se ha desplegado nada ni se ha activado ningún proveedor. El código y los anexos están en
 `main`; los servicios externos siguen sin credenciales y así se declaran en [STUBS.md](STUBS.md).

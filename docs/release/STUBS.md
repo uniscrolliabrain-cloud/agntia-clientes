@@ -24,15 +24,20 @@ una decisión de negocio.
 | C19 | `src/channels/email.ts` | Contrato + transporte fake | Dominio verificado y clave de Resend (o proveedor elegido) |
 | C20 | `src/channels/whatsapp.ts` | `account_not_configured` (documentación revalidada 2026-11-20) | WABA, número de prueba, token y plantillas aprobadas |
 | C32 | `src/presence/anam.ts` | `503` con `fallback: text_only` | API key de Anam y política de grabación aceptada |
-| C35 | `src/bridge/host.ts` | `HOST_BRIDGE_NOT_VERIFIED` | Autorización explícita para tocar `/agente` y resolver la divergencia 12/16 |
+| C35 | `src/bridge/host.ts`, `src/bridge/http-host.ts` | Cliente real + contrato local 11/11; sigue `HOST_BRIDGE_NOT_VERIFIED` | Checkout autorizado de `/agente`, sus cuatro endpoints, token de servicio y resolver la divergencia 12/16 |
 | C03 | `src/auth/jwt.ts` | Verificado con claves de fixture | Proyecto Supabase real (issuer, JWKS, claims) |
-| C06 | `src/storage/pg.ts` | **Verificado localmente**: RLS, durabilidad entre procesos y API durable para casos | `DATABASE_URL` de staging, repetir `db:verify`/`db:persistence`/`db:http` allí, y llevar contactos, propuestas, aprobaciones e intents al mismo patrón |
+| C06 | `src/storage/pg.ts`, `src/storage/aggregates.ts` | **Verificado localmente**: RLS, durabilidad y vertical slices de atención y onboarding | `DATABASE_URL` de staging, repetir `db:verify`/`db:persistence`/`db:http`/`slices` allí; contactos CRUD, outbox y jobs siguen en memoria |
 
 ## Lo que sí está cerrado sin credenciales
 
-- **C06**: 18/18 garantías SQL, 10/10 de persistencia y 13/13 a través del API HTTP con reinicio
-  del proceso, en un PostgreSQL real y efímero (`npm run db:verify`, `db:persistence` y `db:http`,
-  job `database` de CI).
+- **C06**: 18/18 garantías SQL, 10/10 de persistencia, 13/13 a través del API HTTP y 20/20 de
+  vertical slices (atención y onboarding) en PostgreSQL real y efímero, con reinicios del API
+  (`npm run db:verify`, `db:persistence`, `db:http` y `slices`, job `database` de CI).
+- **Instalación**: `npm run install:check` compila el paquete, lo instala en un proyecto host vacío
+  y arranca el servidor desde `node_modules` (10/10). Ver
+  [INSTALACION-AGENTE.md](INSTALACION-AGENTE.md); no sustituye la instalación real en `/agente`.
+- **Contrato del puente**: `npm run bridge:contract` verifica el cliente `HttpHost` contra un
+  stand-in local (11/11). El padre real no se ha llamado.
 - **C11/C12/C31**: identidad, importación con staging y renovaciones, con tests propios.
 - **C33**: portal abierto en Chromium real; C33 sigue `NOT_VERIFIED` solo por los flujos que
   exigirían sesión, lector de pantalla y móvil.

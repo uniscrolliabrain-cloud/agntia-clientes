@@ -13,7 +13,7 @@ Fecha: 2026-11-14 · SHA de referencia auditado: `6a3775d` (main) → este commi
 | E2E | A–I, 9/9 PASS, artefacto `artifacts/e2e-report.json` |
 | CI | `.github/workflows/ci.yml` (`verify` + `database` + `docs`); esta fase se valida en su PR |
 | Dependencias | `hono`, `zod`, `typescript`, `@types/node`; lockfile reparado y verificado con `npm ci` |
-| Persistencia | migraciones SQL con RLS **ejecutadas y verificadas**; con `DATABASE_URL` el API sirve casos y auditoría desde PostgreSQL |
+| Persistencia | migraciones SQL con RLS **ejecutadas y verificadas**; con `DATABASE_URL` el API sirve casos, auditoría, propuestas, aprobaciones, intents y planes de onboarding desde PostgreSQL |
 | Proveedores | contratos + `FakeTransport`; **ninguno conectado** |
 | Bridge padre | contrato + `FakeHost`; **cero cambios en `/agente`** |
 
@@ -65,18 +65,18 @@ Ningún resultado de este documento proviene de mocks presentados como integraci
 | Integración | Estado |
 |---|---|
 | Supabase Auth (JWT) | Verificado con claves de fixture; **sin proyecto real** |
-| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`), 10/10 de persistencia entre procesos y reinicio (`npm run db:persistence`) y 13/13 a través del API con reinicio (`npm run db:http`); Supabase staging pendiente |
+| Postgres / RLS | **Verificado local**: 18/18 garantías en PostgreSQL 18.7 real (`npm run db:verify`), 10/10 de persistencia (`npm run db:persistence`), 13/13 a través del API con reinicio (`npm run db:http`) y 20/20 en dos vertical slices con dos reinicios (`npm run slices`); Supabase staging pendiente |
 | Chatwoot, Twenty, Frappe, Zammad | Contrato + transporte fake; **no conectado** |
 | Resend | Contrato; **no conectado** |
 | WhatsApp | Documentación revalidada (24 h, 3 categorías); `account_not_configured`; **NOT_VERIFIED** |
 | Anam | `503` con `fallback: text_only`; **NOT_CONFIGURED** |
-| Bridge padre | `HOST_BRIDGE_NOT_VERIFIED` |
+| Bridge padre | `HOST_BRIDGE_NOT_VERIFIED`; cliente `HttpHost` contra contrato local 11/11 y paquete instalable 10/10 |
 
 ## 6. Riesgos y deuda técnica
 
-1. El API persiste casos y auditoría en PostgreSQL cuando hay `DATABASE_URL`, pero contactos,
-   propuestas, aprobaciones, intents y outbox siguen en memoria del proceso: un reinicio pierde
-   esos agregados, no los casos.
+1. El API persiste casos, auditoría, propuestas, aprobaciones, intents y planes de onboarding
+   cuando hay `DATABASE_URL`. Siguen en memoria contactos CRUD, outbox y jobs: un reinicio pierde
+   esos agregados, no los demás.
 2. El bus ADTC no tiene transporte; `traceId` se deriva localmente.
 3. La UI del portal se abrió en Chromium (C33) pero no se probó con lector de pantalla ni móvil.
 4. El `SecretStore` de producción no existe (solo memoria).
@@ -111,7 +111,20 @@ identidad/tenants, cambios propuestos (no aplicados) y rollback.
 
 ## 11. Siguiente paso recomendado
 
-Llevar contactos, propuestas, aprobaciones e intents al patrón durable que ya usan casos y
-auditoría (`CaseRepository` + `PgStore`), repetir `db:verify`, `db:persistence` y `db:http`
-contra Supabase staging; después, un único proveedor de conversaciones con discovery real
-(C13/C14). Sin credenciales, el resto sigue en [STUBS.md](STUBS.md).
+Repetir `db:verify`, `db:persistence`, `db:http` y `slices` contra Supabase staging; después,
+instalar el paquete en `/agente` con su checkout y token autorizados
+([INSTALACION-AGENTE.md](INSTALACION-AGENTE.md)) y elegir un único proveedor de conversaciones
+con discovery real (C13/C14). Sin credenciales, el resto sigue en [STUBS.md](STUBS.md).
+
+## 12. Vertical slices e instalación (2026-11-23)
+
+| Entrega | Qué se activó | Evidencia |
+|---|---|---|
+| VS1 · Atención | caso → propuesta con cita → preview → aprobación humana → intent idempotente → despacho sandbox → receipt → `delivered` → reporte | `npm run slices` 20/20 |
+| VS2 · Onboarding | plan versionado → documento con evidencia → aceptación humana → hito `done` | `npm run slices` 20/20 |
+| Instalación | build JS ESM + migraciones, `npm pack`, instalación en proyecto vacío, arranque desde `node_modules`, 401 sin JWT, SIGTERM 0 | `npm run install:check` 10/10 |
+| Puente host | `HttpHost`: principal, aprobación, tarea, evento proyectado, 401, timeout y fallo cerrado sin configuración | `npm run bridge:contract` 11/11 |
+
+El despacho de la VS1 es `sandbox_only`: no hay proveedor detrás y la respuesta lo declara. La
+instalación en `/agente` no se ejecutó porque ese repo no está montado en este entorno; el
+contrato que debe implementar está en [INSTALACION-AGENTE.md](INSTALACION-AGENTE.md).

@@ -3,12 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "./dist/src/server.js",
+  "exports": {
+    ".": "./dist/src/server.js",
+    "./bridge": "./dist/src/bridge/http-host.js",
+    "./bridge/host": "./dist/src/bridge/host.js",
+    "./sdk": "./dist/src/sdk/client.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "docs/release/INSTALACION-AGENTE.md"
+  ],
   "description": "SaaS de relación, atención y customer success: esqueleto implementado de las 42 campañas CLI-C01..CLI-C42.",
   "engines": {
     "node": ">=22.6"
   },
   "scripts": {
     "start": "node src/server.ts",
+    "build": "node scripts/build-package.ts",
+    "prepack": "npm run build",
     "dev": "node --watch src/server.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.ts\"",
@@ -17,17 +31,20 @@
     "db:verify": "node scripts/db-verify.ts",
     "db:persistence": "node scripts/db-persistence.ts",
     "db:http": "node scripts/db-http-durability.ts",
+    "slices": "node scripts/vertical-slices.ts",
+    "install:check": "node scripts/host-install-check.ts",
+    "bridge:contract": "node scripts/host-bridge-check.ts",
     "verify": "npm run typecheck && npm test"
   },
   "dependencies": {
     "hono": "^4.9.10",
+    "pg": "^8.16.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.5",
     "embedded-postgres": "^18.7.0-beta.19",
-    "pg": "^8.16.3",
     "typescript": "^5.9.3"
   }
 }
